@@ -26,7 +26,17 @@ public final class CoOpMod {
      * (KEY: - = complete in current version, o = incomplete feature from previous version,
      *       + = incomplete new feature, ? = feature to consider adding)
      *  - general
-     *      - nothing, yet
+     *      + rangefinder/inspect
+     *      + ping
+     *      + mode to locate nearby players
+     *      + friendly fire protection
+     *      + chunk protection
+     *      ? multiplayer pause
+     *          ? automatic when no players online
+     *          ? all/enough online players requested
+     *      ? chat item linking
+     *      ? chat emojis
+     *      ? salute/emotes
      *
      * Possible future additions:
      *  - tbd
