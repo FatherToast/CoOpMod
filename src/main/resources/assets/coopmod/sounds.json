@@ -1,0 +1,88 @@
+{
+  "block.tower_dispenser.shoot": {
+    "subtitle": "sound_event.deadlyworld.subtitle.block.tower_dispenser.shoot",
+    "sounds": [
+      "minecraft:random/bow"
+    ]
+  },
+  "block.spike_trap.click": {
+    "subtitle": "sound_event.deadlyworld.subtitle.block.spike_trap.click",
+    "sounds": [
+      "minecraft:random/click"
+    ]
+  },
+  "block.sea_mine.arming": {
+    "subtitle": "sound_event.deadlyworld.subtitle.block.sea_mine.arming",
+    "sounds": [
+      "minecraft:random/click"
+    ]
+  },
+  "block.mini_chest.open": {
+    "subtitle": "sound_event.deadlyworld.subtitle.block.mini_chest.open",
+    "sounds": [
+      "minecraft:block/chest/open"
+    ]
+  },
+  "block.mini_chest.close": {
+    "subtitle": "sound_event.deadlyworld.subtitle.block.mini_chest.close",
+    "sounds": [
+      "minecraft:block/chest/close1",
+      "minecraft:block/chest/close2",
+      "minecraft:block/chest/close3"
+    ]
+  },
+  "entity.mimic.appear": {
+    "subtitle": "sound_event.deadlyworld.subtitle.entity.mimic.appear",
+    "sounds": [
+      "minecraft:entity/shulker/shoot1",
+      "minecraft:entity/shulker/shoot2",
+      "minecraft:entity/shulker/shoot3",
+      "minecraft:entity/shulker/shoot4"
+    ]
+  },
+  "entity.chest_mimic.hurt": {
+    "subtitle": "sound_event.deadlyworld.subtitle.entity.chest_mimic.hurt",
+    "sounds": [
+      "minecraft:block/wooden_trapdoor/close1",
+      "minecraft:block/wooden_trapdoor/close2",
+      "minecraft:block/wooden_trapdoor/close3"
+    ]
+  },
+  "entity.chest_mimic.death": {
+    "subtitle": "sound_event.deadlyworld.subtitle.entity.chest_mimic.death",
+    "sounds": [
+      "minecraft:block/chest/close1",
+      "minecraft:block/chest/close2",
+      "minecraft:block/chest/close3"
+    ]
+  },
+  "entity.spawner_mimic.step": {
+    "subtitle": "subtitles.block.generic.footsteps",
+    "sounds": [
+      "minecraft:block/chain/step1",
+      "minecraft:block/chain/step2",
+      "minecraft:block/chain/step3",
+      "minecraft:block/chain/step4",
+      "minecraft:block/chain/step5",
+      "minecraft:block/chain/step6"
+    ]
+  },
+  "entity.spawner_mimic.hurt": {
+    "subtitle": "sound_event.deadlyworld.subtitle.entity.spawner_mimic.hurt",
+    "sounds": [
+      "minecraft:dig/stone1",
+      "minecraft:dig/stone2",
+      "minecraft:dig/stone3",
+      "minecraft:dig/stone4"
+    ]
+  },
+  "entity.spawner_mimic.death": {
+    "subtitle": "sound_event.deadlyworld.subtitle.entity.spawner_mimic.death",
+    "sounds": [
+      "minecraft:block/chain/break1",
+      "minecraft:block/chain/break2",
+      "minecraft:block/chain/break3",
+      "minecraft:block/chain/break4"
+    ]
+  }
+}
