@@ -10,6 +10,7 @@ import net.minecraftforge.fml.ModLoadingStage;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.javafmlmod.FMLModContainer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,18 +26,27 @@ public final class CoOpMod {
     /* Features list:
      * (KEY: - = complete in current version, o = incomplete feature from previous version,
      *       + = incomplete new feature, ? = feature to consider adding)
-     *  - general
-     *      + rangefinder/inspect
-     *      + ping
-     *      + mode to locate nearby players
-     *      + friendly fire protection
-     *      + chunk protection
+     *  + general features
+     *      + inspect
      *      ? multiplayer pause
      *          ? automatic when no players online
      *          ? all/enough online players requested
+     *  + social features
+     *      ? player inspect
      *      ? chat item linking
      *      ? chat emojis
      *      ? salute/emotes
+     *  + co-ordination features
+     *      + ping inspected
+     *      + highlight nearby players
+     *      ? revive
+     *  + protection features
+     *      + friendly fire
+     *      + chunk
+     *      + inventory
+     *          ? keep items
+     *          ? gravestone
+     *      ? action log
      *
      * Possible future additions:
      *  - tbd
@@ -48,46 +58,36 @@ public final class CoOpMod {
     /** The logger used by this mod. */
     public static final Logger LOG = LogManager.getLogger( MOD_ID );
     
+    /** Mod instance. */
+    public static CoOpMod INSTANCE;
+    
+    /** Mod container. */
+    public final FMLModContainer CONTAINER;
     /** Packet handler instance */
-    public PacketHandler packetHandler = new PacketHandler();
+    public final PacketHandler PACKET_HANDLER = new PacketHandler();
     
     
     public CoOpMod( FMLJavaModLoadingContext context ) {
-        IEventBus eventBus = context.getModEventBus();
+        INSTANCE = this;
+        CONTAINER = context.getContainer();
+        PACKET_HANDLER.registerMessages();
         
-        packetHandler.registerMessages();
+        IEventBus eventBus = context.getModEventBus();
         
         eventBus.addListener( this::onCommonSetup );
         
-        //        DWBlocks.REGISTRY.register( eventBus );
-        //        DWItems.REGISTRY.register( eventBus );
-        //        DWCreativeModeTabs.REGISTRY.register( eventBus );
-        //        DWEntities.REGISTRY.register( eventBus );
-        //        DWSoundEvents.REGISTRY.register( eventBus );
-        //        DWBlockEntities.REGISTRY.register( eventBus );
-        //        DWLootModifiers.REGISTRY.register( eventBus );
-        //        DWBiomeModifiers.REGISTRY.register( eventBus );
-        //        DWFishingPranks.REGISTRY.register( eventBus );
-        //        DWDecoyTypes.REGISTRY.register( eventBus );
-        //        DWFluids.REGISTRY.register( eventBus );
-        //        DWFluids.TYPE_REGISTRY.register( eventBus );
+        //CMSoundEvents.REGISTRY.register( eventBus );
         
         Config.initializeEarly();
         DeferredWorkQueue.lookup( Optional.of( ModLoadingStage.COMMON_SETUP ) ).ifPresent(
                 ( workQueue ) -> workQueue.enqueueWork( ModList.get().getModContainerById( MOD_ID ).orElseThrow(),
                         Config::initialize )
         );
-        
-        //        DWFieldProviders.register( eventBus );
-        //        DWFeatures.REGISTRY.register( eventBus );
-        //        DWPlacementTypes.REGISTRY.register( eventBus );
     }
     
     public void onCommonSetup( FMLCommonSetupEvent event ) {
-        event.enqueueWork( () -> {
-            //            DWFluids.registerFluidInteractions();
-            //            DWDispenserBehavior.register();
-        } );
+        //event.enqueueWork( () -> {
+        //} );
     }
     
     /** @return A ResourceLocation with the mod's modid. */

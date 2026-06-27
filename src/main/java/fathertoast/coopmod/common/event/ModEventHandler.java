@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 /**
- * Contains and automatically registers all needed mod events.
+ * Contains and automatically registers all common-side mod events.
  */
 @Mod.EventBusSubscriber( modid = CoOpMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD )
 public final class ModEventHandler {

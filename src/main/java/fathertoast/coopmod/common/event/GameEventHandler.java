@@ -1,7 +1,9 @@
 package fathertoast.coopmod.common.event;
 
 
+import fathertoast.coopmod.common.config.Config;
 import fathertoast.coopmod.common.core.CoOpMod;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -9,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -16,10 +19,22 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 /**
- * Contains and automatically registers all needed forge events.
+ * Contains and automatically registers all common-side forge events.
  */
 @Mod.EventBusSubscriber( modid = CoOpMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE )
 public final class GameEventHandler {
+    
+    /**
+     * Called when a player logs in.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    public static void onPlayerLoggedIn( PlayerEvent.PlayerLoggedInEvent event ) {
+        if( event.getEntity() instanceof ServerPlayer player ) {
+            Config.MAIN.sendSyncPacket( player );
+        }
+    }
     
     /**
      * Called at the start of {@link LivingEntity#hurt(DamageSource, float)} before all damage calculations.

@@ -19,6 +19,11 @@ apply plugin: "org.spongepowered.mixin"
 
 mixin {
     add sourceSets.main, "coopmod.refmap.json"
+    config "coopmod.mixins.json"
+
+    debug.verbose = true
+    debug.export = true
+    debug.countInjections = true
 }
 
 // The mod's version and id

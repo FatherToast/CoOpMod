@@ -1,7 +1,10 @@
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-package fathertoast.coopmod.common.config.dimension;
+@OnlyIn( Dist.CLIENT )
+package fathertoast.coopmod.client.vfx;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.ParametersAreNonnullByDefault;

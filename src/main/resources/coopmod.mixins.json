@@ -1,13 +1,17 @@
 {
-  "required": true,
-  "package": "fathertoast.coopmod.common.mixin",
+  "required": false,
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "refmap": "coopmod.refmap.json",
-  "mixins": [],
-  "client": [],
+  "package": "fathertoast.coopmod.common.mixin",
+  "mixins": [
+  ],
+  "client": [
+    "EntityMixin",
+    "MinecraftMixin"
+  ],
   "server": [],
   "injectors": {
-    "defaultRequire": 1
+    "defaultRequire": 0
   }
 }
