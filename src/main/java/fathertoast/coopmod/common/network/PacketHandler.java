@@ -1,10 +1,14 @@
 package fathertoast.coopmod.common.network;
 
 import fathertoast.coopmod.common.core.CoOpMod;
-import fathertoast.coopmod.common.network.message.ClientboundMainConfigSyncPacket;
+import fathertoast.coopmod.common.network.message.*;
+import fathertoast.coopmod.common.util.TrackingHelper;
+import fathertoast.crust.api.util.OnClient;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
@@ -20,20 +24,96 @@ import java.util.function.Supplier;
 
 public final class PacketHandler {
     
-    // ---- Message Sending ---- //
+    // ---- Message & Channel Setup ---- //
+    
+    /**
+     * Current protocol version. This should be incremented any time our packets are changed,
+     * and does break backwards compatibility.
+     */
+    private static final String PROTOCOL_VERSION = "0";
+    
+    /** The network channel our mod will be using when sending messages. */
+    private static final SimpleChannel CHANNEL;
+    
+    /** Registers this mod's messages. */
+    public void registerMessages() {
+        int messageIndex = -1;
+        
+        // Server -> Client
+        registerClientboundMessage( ++messageIndex, ClientboundMainConfigSyncPacket.class,
+                ClientboundMainConfigSyncPacket::encode, ClientboundMainConfigSyncPacket::decode, ClientboundMainConfigSyncPacket::handle );
+        registerClientboundMessage( ++messageIndex, ClientboundPingManagerSyncPacket.class,
+                ClientboundPingManagerSyncPacket::encode, ClientboundPingManagerSyncPacket::decode, ClientboundPingManagerSyncPacket::handle );
+        registerClientboundMessage( ++messageIndex, ClientboundEntityPingPacket.class,
+                ClientboundEntityPingPacket::encode, ClientboundEntityPingPacket::decode, ClientboundEntityPingPacket::handle );
+        registerClientboundMessage( ++messageIndex, ClientboundBlockPingPacket.class,
+                ClientboundBlockPingPacket::encode, ClientboundBlockPingPacket::decode, ClientboundBlockPingPacket::handle );
+        
+        // Client -> Server
+        registerServerboundMessage( ++messageIndex, ServerboundEntityPingPacket.class,
+                ServerboundEntityPingPacket::encode, ServerboundEntityPingPacket::decode, ServerboundEntityPingPacket::handle );
+        registerServerboundMessage( ++messageIndex, ServerboundBlockPingPacket.class,
+                ServerboundBlockPingPacket::encode, ServerboundBlockPingPacket::decode, ServerboundBlockPingPacket::handle );
+    }
+    
+    
+    // ---- Server -> Client Message Sending ---- //
     
     /** Called when the config is edited to sync relevant data to all connected clients. */
-    public static void sendSync( ClientboundMainConfigSyncPacket packet ) {
-        sendToAll( packet );
+    public static void sendSync( ClientboundMainConfigSyncPacket message ) {
+        sendToAll( message );
     }
     
-    /** Called when a client connects to sync relevant data. */
-    public static void sendSync( ClientboundMainConfigSyncPacket packet, ServerPlayer player ) {
-        sendToClient( packet, player );
+    /** Called when a client connects to sync relevant config data. */
+    public static void sendSync( ClientboundMainConfigSyncPacket message, ServerPlayer player ) {
+        sendToClient( message, player );
+    }
+    
+    /** Called when a player enters a dimension to sync relevant active pings. */
+    public static void sendSync( ClientboundPingManagerSyncPacket message, ServerPlayer player ) {
+        sendToClient( message, player );
+    }
+    
+    /** Sends a ping to all tracking players. */
+    public static void sendPing( ClientboundEntityPingPacket message, ServerPlayer sender ) {
+        Entity entity = sender.serverLevel().getEntity( message.entityId() );
+        if( entity != null ) {
+            for( ServerPlayer player : sender.serverLevel().players() ) {
+                if( player != sender && TrackingHelper.isEntityInTrackingRange( player, entity ) ) {
+                    sendToClient( message, player );
+                }
+            }
+        }
+    }
+    
+    /** Sends a ping to all tracking players. */
+    public static void sendPing( ClientboundBlockPingPacket message, ServerPlayer sender ) {
+        if( sender.serverLevel().isLoaded( message.blockPos() ) ) {
+            for( ServerPlayer player : sender.serverLevel().players() ) {
+                if( player != sender && TrackingHelper.isBlockInTrackingRange( player, message.blockPos() ) ) {
+                    sendToClient( message, player );
+                }
+            }
+        }
     }
     
     
-    // ---- Internal Message Sending ---- //
+    // ---- Client -> Server Message Sending ---- //
+    
+    /** Sends a ping to the server. */
+    @OnClient
+    public static void sendPingToServer( int entityId ) {
+        CHANNEL.sendToServer( new ServerboundEntityPingPacket( entityId ) );
+    }
+    
+    /** Sends a ping to the server. */
+    @OnClient
+    public static void sendPingToServer( BlockPos blockPos ) {
+        CHANNEL.sendToServer( new ServerboundBlockPingPacket( blockPos ) );
+    }
+    
+    
+    // ---- Internal Methods ---- //
     
     /**
      * Sends the specified message to all connected clients.
@@ -80,41 +160,21 @@ public final class PacketHandler {
         CHANNEL.sendTo( message, player.connection.connection, NetworkDirection.PLAY_TO_CLIENT );
     }
     
-    
-    // ---- Message & Channel Setup ---- //
-    
-    /**
-     * Current protocol version. This should be incremented any time our packets are changed,
-     * and does break backwards compatibility.
-     */
-    private static final String PROTOCOL_VERSION = "0";
-    
-    /** The network channel our mod will be using when sending messages. */
-    private static final SimpleChannel CHANNEL;
-    
-    /** Registers this mod's messages. */
-    public void registerMessages() {
-        int messageIndex = 0;
-        
-        // Server -> Client
-        registerClientboundMessage( messageIndex++, ClientboundMainConfigSyncPacket.class,
-                ClientboundMainConfigSyncPacket::encode, ClientboundMainConfigSyncPacket::decode, ClientboundMainConfigSyncPacket::handle );
-        
-        // Client -> Server
-    }
-    
+    /** Registers a typical clientbound message. */
     private <MSG> void registerClientboundMessage( int messageIndex, Class<MSG> messageType,
                                                    BiConsumer<MSG, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, MSG> decoder,
                                                    BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer ) {
         registerMessage( messageIndex, messageType, encoder, decoder, messageConsumer, NetworkDirection.PLAY_TO_CLIENT );
     }
     
+    /** Registers a typical serverbound message. */
     private <MSG> void registerServerboundMessage( int messageIndex, Class<MSG> messageType,
                                                    BiConsumer<MSG, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, MSG> decoder,
                                                    BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer ) {
         registerMessage( messageIndex, messageType, encoder, decoder, messageConsumer, NetworkDirection.PLAY_TO_SERVER );
     }
     
+    /** Registers a message with specified direction. */
     private <MSG> void registerMessage( int messageIndex, Class<MSG> messageType,
                                         BiConsumer<MSG, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, MSG> decoder,
                                         BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer, NetworkDirection direction ) {

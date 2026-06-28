@@ -1,5 +1,6 @@
 package fathertoast.coopmod.client;
 
+import fathertoast.coopmod.common.config.ColorIntValueCodec;
 import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.crust.api.config.common.AbstractConfigCategory;
 import fathertoast.crust.api.config.common.AbstractConfigFile;
@@ -12,10 +13,10 @@ import fathertoast.crust.api.config.common.field.collection.BlockStateMapField;
 import fathertoast.crust.api.config.common.field.collection.EntityMapField;
 import fathertoast.crust.api.config.common.value.collection.BlockStateMap;
 import fathertoast.crust.api.config.common.value.collection.EntityMap;
-import fathertoast.crust.api.config.common.value.collection.value.IntValueCodec;
-import fathertoast.crust.api.util.BlockStatePropertyMap;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * Used as the sole hub for all client-side config access from outside the config package.
@@ -88,7 +89,7 @@ public class ClientConfig extends AbstractConfigFile {
         public final ColorIntField defaultColor;
         
         public final BooleanField inspectUsesDefault;
-        public final BooleanField playerColors;//TODO implement
+        public final BooleanField playerColors;
         
         public final EntityMapField<Integer> entityColors;
         
@@ -97,34 +98,52 @@ public class ClientConfig extends AbstractConfigFile {
         HighlightColors( ClientConfig parent ) {
             super( parent, "highlight_colors",
                     "Options to customize the colors for ping and inspect highlights (their visual outlines)." );
-            IntValueCodec colorCodec = IntValueCodec.of( 0x000000, 0x000000, 0xFFFFFF );// Until we implement a color value codec in Crust; too lazy to do here
             
-            defaultColor = SPEC.define( new ColorIntField( "default", 0xFFFF00, false,
-                    "The color used for all highlights not specified in the following fields." ) );
+            defaultColor = SPEC.define( new ColorIntField( "global_default", 0xFFFF00, false,
+                    "The color used for all highlights not specified in the following fields. Note that " +
+                            "when the settings below are all at their default values, this color will never be used." ) );
             
             SPEC.newLine();
             
             inspectUsesDefault = SPEC.define( new BooleanField( "inspect_always_uses_default", false,
-                    "When enabled, your current inspect target highlight will always use the default color " +
-                            "specified above. Otherwise, it will follow these settings." ) );
-            playerColors = SPEC.define( new BooleanField( "other_player_pings", true,
+                    "When enabled, your current inspect target highlight will always use the global default " +
+                            "color specified above. Otherwise, inspect color will follow the below settings." ) );
+            playerColors = SPEC.define( new BooleanField( "player_colored_pings", false,
                     "When enabled, this causes other players' pings to match their personal color. " +
-                            "Otherwise, their pings will follow these settings." ) );
+                            "Otherwise, their ping colors will follow the other settings." ) );
             
             SPEC.newLine();
             
-            entityColors = SPEC.define( new EntityMapField<>( "entities", new EntityMap.Builder<>( colorCodec )
-                    .put( EntityType.CREEPER, 0x00FF00 )
-                    .buildWithDefault( 0xFF0000 ),
-                    "The colors used for entity highlights." ) );
+            var builder = new EntityMap.Builder<>( ColorIntValueCodec.NO_ALPHA );
+            for( EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES.getValues() ) {
+                switch( entityType.getCategory() ) { // TODO update to use extends super in higher Crust ver, maybe also add auto-color options
+                    case MONSTER -> {} // Skip so they get the default color
+                    case MISC -> builder.put( entityType, 0xFFFF00 );
+                    default -> builder.put( entityType, 0x00FF00 );
+                }
+            }
+            entityColors = SPEC.define( new EntityMapField<>( "entities",
+                    builder.buildWithDefault( 0xFF0000 ),
+                    "The colors used for entity highlights. If no default color is specified in this " +
+                            "list, the global default color above applies." ) );
             
             SPEC.newLine();
             
-            blockColors = SPEC.define( new BlockStateMapField<>( "blocks", new BlockStateMap.Builder<>( colorCodec )
-                    .putWildcard( "minecraft", "nether", BlockStatePropertyMap.EMPTY, 0xFF00FF )
-                    .put( Blocks.INFESTED_STONE, BlockStatePropertyMap.EMPTY, 0xFF0000 )
-                    .buildWithDefault( 0x00FF00 ),
-                    "The colors used for entity highlights." ) );
+            blockColors = SPEC.define( new BlockStateMapField<>( "blocks",
+                    new BlockStateMap.Builder<>( ColorIntValueCodec.NO_ALPHA )
+                            .buildWithDefault( 0x00FFFF ),
+                    "The colors used for block highlights. If no default color is specified in this " +
+                            "list, the global default color above applies." ) );
+        }
+        
+        public int getColor( Entity entity ) {
+            return ClientConfig.PREFS.HIGHLIGHT_COLORS.entityColors.getOrElse( entity,
+                    ClientConfig.PREFS.HIGHLIGHT_COLORS.defaultColor.get() );
+        }
+        
+        public int getColor( BlockState blockState ) {
+            return ClientConfig.PREFS.HIGHLIGHT_COLORS.blockColors.getOrElse( blockState,
+                    ClientConfig.PREFS.HIGHLIGHT_COLORS.defaultColor.get() );
         }
     }
 }

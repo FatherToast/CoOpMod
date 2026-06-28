@@ -3,17 +3,24 @@ package fathertoast.coopmod.common.event;
 
 import fathertoast.coopmod.common.config.Config;
 import fathertoast.coopmod.common.core.CoOpMod;
+import fathertoast.coopmod.common.core.PingManager;
+import fathertoast.crust.api.util.OnClient;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.level.ChunkDataEvent;
+import net.minecraftforge.event.level.ChunkEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -24,15 +31,40 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber( modid = CoOpMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE )
 public final class GameEventHandler {
     
+    @OnClient
+    public static int localPingCooldown;
+    
     /**
      * Called when a player logs in.
      *
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onPlayerLoggedIn( PlayerEvent.PlayerLoggedInEvent event ) {
+    static void onPlayerLoggedIn( PlayerEvent.PlayerLoggedInEvent event ) {
         if( event.getEntity() instanceof ServerPlayer player ) {
             Config.MAIN.sendSyncPacket( player );
+        }
+    }
+    
+    /**
+     * Called at the start and end of each level tick, on both the client and server side.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onLevelTick( TickEvent.LevelTickEvent event ) {
+        if( event.phase == TickEvent.Phase.END ) {
+            PingManager manager = PingManager.get( event.level );
+            if( event.level.isClientSide() ) {
+                localPingCooldown = Math.max( 0, localPingCooldown - 1 );
+            }
+            
+            // Remove expired and OBE pings
+            long gameTime = event.level.getGameTime();
+            manager.getEntityPings().removeIf( ( ping ) ->
+                    ping.getValue().isExpired( gameTime ) || ping.getValue().isRemoved( event.level, ping.getKey() ) );
+            manager.getBlockPings().removeIf( ( ping ) ->
+                    ping.getValue().isExpired( gameTime ) || ping.getValue().isRemoved( event.level, ping.getKey() ) );
         }
     }
     
@@ -43,7 +75,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onLivingAttack( LivingAttackEvent event ) {
+    static void onLivingAttack( LivingAttackEvent event ) {
         //TODO Friendly fire protection goes here?
     }
     
@@ -53,7 +85,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onEntityPlaceBlock( BlockEvent.EntityPlaceEvent event ) {
+    static void onEntityPlaceBlock( BlockEvent.EntityPlaceEvent event ) {
         //if( event.isCanceled() || !(event.getLevel() instanceof ServerLevel level) ) return;
         //TODO Some chunk protection goes here?
     }
@@ -70,9 +102,12 @@ public final class GameEventHandler {
      */
     @SuppressWarnings( "JavadocReference" )
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onEntityJoinLevel( EntityJoinLevelEvent event ) {
-        //if( event.isCanceled() || !(event.getLevel() instanceof ServerLevel level) ) return;
-        // Probably will need this
+    static void onEntityJoinLevel( EntityJoinLevelEvent event ) {
+        if( event.isCanceled() ) return;
+        
+        if( event.getLevel() instanceof ServerLevel level && event.getEntity() instanceof ServerPlayer player ) {
+            PingManager.onPlayerJoinServerLevel( level, player );
+        }
     }
     
     /**
@@ -82,7 +117,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onBlockBreak( BlockEvent.BreakEvent event ) {
+    static void onBlockBreak( BlockEvent.BreakEvent event ) {
         //if( event.isCanceled() || !(event.getLevel() instanceof ServerLevel level) ) return;
         //TODO Some chunk protection goes here?
     }
@@ -93,7 +128,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onRightClickContainer( PlayerInteractEvent.RightClickBlock event ) {
+    static void onRightClickContainer( PlayerInteractEvent.RightClickBlock event ) {
         //TODO Some chunk protection goes here?
     }
     
@@ -103,7 +138,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onEntityInteract( PlayerInteractEvent.EntityInteract event ) {
+    static void onEntityInteract( PlayerInteractEvent.EntityInteract event ) {
         //if( event.isCanceled() || !(event.getLevel() instanceof ServerLevel level) ) return;
         //TODO Some chunk protection goes here?
     }
@@ -117,7 +152,51 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onBlockAboutToBreak( BlockEvent.BreakEvent event ) {
+    static void onBlockAboutToBreak( BlockEvent.BreakEvent event ) {
         //TODO Some chunk protection goes here?
+    }
+    
+    /**
+     * Called during chunk loading (async).
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onChunkDataLoad( ChunkDataEvent.Load event ) {
+        //TODO load chunk data
+    }
+    
+    /**
+     * Called during chunk saving.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onChunkDataSave( ChunkDataEvent.Save event ) {
+        //TODO save chunk data
+    }
+    
+    /**
+     * Called during chunk unloading.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onChunkUnload( ChunkEvent.Unload event ) {
+        if( !event.getLevel().isClientSide() ) {
+            //TODO forget chunk data
+        }
+    }
+    
+    /**
+     * Called during chunk unloading.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onLevelUnload( LevelEvent.Unload event ) {
+        if( !event.getLevel().isClientSide() ) {
+            //TODO forget all chunk data
+        }
     }
 }

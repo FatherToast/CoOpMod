@@ -26,7 +26,7 @@ public final class KeyBindingEvents {
     private static final KeyMapping INSPECT = new SortedKeyMapping( 0, KEY + "inspect", KEY_CAT,
             InputConstants.KEY_V ).inGameOnly();
     private static final KeyMapping PING = new SortedKeyMapping( 1, KEY + "ping", KEY_CAT,
-            InputConstants.MOUSE_BUTTON_LEFT ).inGameOnly();
+            InputConstants.Type.MOUSE, InputConstants.MOUSE_BUTTON_LEFT ).inGameOnly();
     private static final KeyMapping QUICK_PING = new SortedKeyMapping( 2, KEY + "quick_ping", KEY_CAT,
             InputConstants.KEY_G ).inGameOnly();
     
@@ -48,10 +48,38 @@ public final class KeyBindingEvents {
     
     /** Called when a key is pressed. */
     @SubscribeEvent
+    static void onMouseInput( InputEvent.MouseButton.Pre event ) {
+        Minecraft client = Minecraft.getInstance();
+        Screen screen = client.screen;
+        if( event.getButton() == InputConstants.UNKNOWN.getValue() || screen != null /*&& screen.isPauseScreen()*/ )
+            return;
+        
+        if( event.getAction() == InputConstants.PRESS ) {
+            if( event.getButton() == INSPECT.getKey().getValue() && INSPECT.isConflictContextAndModifierActive() ) {
+                switch( ClientConfig.PREFS.INSPECTION.keyMode.get() ) {
+                    case HOLD -> InspectManager.enableInspect();
+                    case TOGGLE -> InspectManager.setInspectOn( !InspectManager.getInspectOn() );
+                }
+            }
+            else if( event.getButton() == PING.getKey().getValue() && PING.isConflictContextAndModifierActive() ) {
+                if( InspectManager.getInspectOn() ) {
+                    if( InspectManager.target() != null ) InspectManager.ping();
+                    if( ClientConfig.PREFS.INSPECTION.keyMode.get() == Mode.HOLD ) event.setCanceled( true );
+                }
+            }
+            else if( event.getButton() == QUICK_PING.getKey().getValue() && QUICK_PING.isConflictContextAndModifierActive() ) {
+                InspectManager.quickPing();
+            }
+        }
+    }
+    
+    /** Called when a key is pressed. */
+    @SubscribeEvent
     static void onKeyInput( InputEvent.Key event ) {
-        Minecraft minecraft = Minecraft.getInstance();
-        Screen screen = minecraft.screen;
-        if( event.getKey() == InputConstants.UNKNOWN.getValue() || screen != null && screen.isPauseScreen() ) return;
+        Minecraft client = Minecraft.getInstance();
+        Screen screen = client.screen;
+        if( event.getKey() == InputConstants.UNKNOWN.getValue() || screen != null /*&& screen.isPauseScreen()*/ )
+            return;
         
         if( event.getAction() == GLFW.GLFW_PRESS ) {
             if( event.getKey() == INSPECT.getKey().getValue() && INSPECT.isConflictContextAndModifierActive() ) {

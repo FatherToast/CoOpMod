@@ -56,7 +56,7 @@ minecraft {
             property "mixin.debug.export", "true"
             property 'mixin.env.disableRefMap', 'true'
 
-            arg "-mixin.config=coopmod.mixins.json"
+            args "-mixin.config=coopmod.mixins.json", "--username", "FatherToast"
         }
 
         server {

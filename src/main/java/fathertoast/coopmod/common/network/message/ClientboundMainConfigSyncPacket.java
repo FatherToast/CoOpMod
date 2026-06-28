@@ -8,13 +8,16 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public record ClientboundMainConfigSyncPacket( double maxInspectRange ) {
+public record ClientboundMainConfigSyncPacket( double maxInspectRange,
+                                               boolean allowInspectingHidden,
+                                               int pingDuration,
+                                               int pingCooldown ) {
     
     public static void handle( ClientboundMainConfigSyncPacket message, Supplier<NetworkEvent.Context> contextSupplier ) {
         NetworkEvent.Context context = contextSupplier.get();
         
         if( context.getDirection().getReceptionSide().isClient() ) {
-            context.enqueueWork( () -> ClientWork.handleSyncMaxInspectRange( message ) );
+            context.enqueueWork( () -> ClientWork.handleMainConfigSync( message ) );
         }
         context.setPacketHandled( true );
     }
@@ -22,17 +25,24 @@ public record ClientboundMainConfigSyncPacket( double maxInspectRange ) {
     public static ClientboundMainConfigSyncPacket decode( FriendlyByteBuf buffer ) {
         try {
             return new ClientboundMainConfigSyncPacket(
-                    buffer.readDouble() );
+                    buffer.readDouble(),
+                    buffer.readBoolean(),
+                    buffer.readInt(),
+                    buffer.readInt() );
         }
         catch( IndexOutOfBoundsException | DecoderException ex ) {
             CoOpMod.LOG.error( ex );
             // noinspection CallToPrintStackTrace
             ex.printStackTrace();
-            return new ClientboundMainConfigSyncPacket( 0.0 );
+            return new ClientboundMainConfigSyncPacket( 0.0, false,
+                    0, Integer.MAX_VALUE );
         }
     }
     
     public static void encode( ClientboundMainConfigSyncPacket message, FriendlyByteBuf buffer ) {
         buffer.writeDouble( message.maxInspectRange() );
+        buffer.writeBoolean( message.allowInspectingHidden() );
+        buffer.writeInt( message.pingDuration() );
+        buffer.writeInt( message.pingCooldown() );
     }
 }

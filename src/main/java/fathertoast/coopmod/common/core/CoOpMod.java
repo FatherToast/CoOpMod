@@ -26,8 +26,8 @@ public final class CoOpMod {
     /* Features list:
      * (KEY: - = complete in current version, o = incomplete feature from previous version,
      *       + = incomplete new feature, ? = feature to consider adding)
-     *  + general features
-     *      + inspect
+     *  - general features
+     *      - inspect
      *      ? multiplayer pause
      *          ? automatic when no players online
      *          ? all/enough online players requested
@@ -36,8 +36,8 @@ public final class CoOpMod {
      *      ? chat item linking
      *      ? chat emojis
      *      ? salute/emotes
-     *  + co-ordination features
-     *      + ping inspected
+     *  - co-ordination features
+     *      - ping inspected
      *      + highlight nearby players
      *      ? revive
      *  + protection features
