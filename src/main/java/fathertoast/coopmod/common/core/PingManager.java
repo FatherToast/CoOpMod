@@ -95,6 +95,11 @@ public class PingManager {
     
     public boolean getIsPinged( BlockPos pos ) { return BLOCK_PINGS.containsKey( pos ); }
     
+    public int getColor( BlockPos pos ) {
+        Ping.BlockData pingData = BLOCK_PINGS.get( pos );
+        return pingData == null ? -1 : pingData.color;
+    }
+    
     public Set<Map.Entry<Integer, Ping.EntityData>> getEntityPings() { return ENTITY_PINGS.entrySet(); }
     
     public Set<Map.Entry<BlockPos, Ping.BlockData>> getBlockPings() { return BLOCK_PINGS.entrySet(); }

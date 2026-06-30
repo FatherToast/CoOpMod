@@ -9,6 +9,7 @@ import fathertoast.coopmod.common.network.message.ClientboundMainConfigSyncPacke
 import fathertoast.crust.api.lib.CrustMath;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.OutlineBufferSource;
@@ -72,9 +73,10 @@ public final class InspectManager {
     public static HitResult target() { return inspectOn ? target : null; }
     
     /** @return True if the entity is our current inspect target. */
-    public static boolean isInspectTarget( Entity entity ) {
-        return inspectOn && INSPECT_ENTITIES.containsKey( entity.getId() );
-    }
+    public static boolean isInspectTarget( Entity entity ) { return inspectOn && INSPECT_ENTITIES.containsKey( entity.getId() ); }
+    
+    /** @return True if the block position is our current inspect target. */
+    public static boolean isInspectTarget( BlockPos pos ) { return inspectOn && INSPECT_BLOCKS.containsKey( pos ); }
     
     
     // ---- Ping Controls ---- //
@@ -113,6 +115,12 @@ public final class InspectManager {
         return isInspectTarget( entity ) || PingManager.isPinged( entity );
     }
     
+    /** @return True if the block position should be rendered with a glow effect. */
+    public static boolean shouldHighlight( BlockPos pos ) {
+        ClientLevel level = client().level;
+        return level != null && (isInspectTarget( pos ) || PingManager.isPinged( level, pos ));
+    }
+    
     /** @return The RGB highlight color the entity should have. */
     public static int getHighlightColor( Entity entity ) {
         if( ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ) {
@@ -120,6 +128,20 @@ public final class InspectManager {
             if( ping != null && ping.color >= 0 ) return ping.color;
         }
         return ClientConfig.PREFS.HIGHLIGHT_COLORS.getColor( entity );
+    }
+    
+    /** @return The RGB highlight color the block position should have. */
+    public static int getHighlightColor( BlockPos pos ) {
+        ClientLevel level = client().level;
+        if( level == null ) return ClientConfig.PREFS.HIGHLIGHT_COLORS.defaultColor.get();
+        
+        BlockState block = level.getBlockState( pos );
+        if( ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ) {
+            int color = INSPECT_BLOCKS.containsKey( pos ) ? INSPECT_BLOCKS.get( pos ).color :
+                    PingManager.get( level ).getColor( pos );
+            if( color > 0 ) return color;
+        }
+        return ClientConfig.PREFS.HIGHLIGHT_COLORS.getColor( block );
     }
     
     /** @return True if any blocks should be rendered with a glow effect. */
@@ -211,7 +233,6 @@ public final class InspectManager {
                         ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ? ping.getValue().color : -1 );
             }
         }
-        //TODO figure out if we can get block entities to glow
     }
     
     /** Renders a single block highlight. If color is negative, the highlight color will be auto-assigned by the config. */
