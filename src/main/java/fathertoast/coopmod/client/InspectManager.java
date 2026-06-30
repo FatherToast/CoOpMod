@@ -34,6 +34,7 @@ import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public final class InspectManager {
@@ -70,23 +71,9 @@ public final class InspectManager {
     @Nullable
     public static HitResult target() { return inspectOn ? target : null; }
     
-    /**
-     * The hit result for the block we are currently inspecting.
-     * Null if not inspecting a block at the moment (not active, ray cast miss, or inspecting entity).
-     */
-    @Nullable
-    public static BlockHitResult targetBlock() { return inspectOn ? targetBlock : null; }
-    
-    /**
-     * The hit result for the entity we are currently inspecting.
-     * Null if not inspecting an entity at the moment (not active, ray cast miss, or inspecting block).
-     */
-    @Nullable
-    public static EntityHitResult targetEntity() { return inspectOn ? targetEntity : null; }
-    
     /** @return True if the entity is our current inspect target. */
-    public static boolean isInspectTarget( @Nullable Entity entity ) {
-        return inspectOn && targetEntity != null && targetEntity.getEntity().equals( entity );
+    public static boolean isInspectTarget( Entity entity ) {
+        return inspectOn && INSPECT_ENTITIES.containsKey( entity.getId() );
     }
     
     
@@ -128,11 +115,7 @@ public final class InspectManager {
     
     /** @return The RGB highlight color the entity should have. */
     public static int getHighlightColor( Entity entity ) {
-        if( isInspectTarget( entity ) ) {
-            if( ClientConfig.PREFS.HIGHLIGHT_COLORS.inspectUsesDefault.get() )
-                return ClientConfig.PREFS.HIGHLIGHT_COLORS.defaultColor.get();
-        }
-        else if( ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ) {
+        if( ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ) {
             Ping.EntityData ping = PingManager.getPingData( entity );
             if( ping != null && ping.color >= 0 ) return ping.color;
         }
@@ -141,7 +124,7 @@ public final class InspectManager {
     
     /** @return True if any blocks should be rendered with a glow effect. */
     public static boolean areAnyBlocksHighlighted() {
-        return targetBlock() != null || PingManager.areAnyPingsActive( client().level );
+        return !INSPECT_BLOCKS.isEmpty() || PingManager.areAnyPingsActive( client().level );
     }
     
     
@@ -165,12 +148,9 @@ public final class InspectManager {
     /** The current inspect target. Null if we have no target. Will never have a type of HitResult.Type.MISS. */
     @Nullable
     private static HitResult target;
-    /** The current block inspect target. Null if we have no block target. Type can only be HitResult.Type.BLOCK. */
-    @Nullable
-    private static BlockHitResult targetBlock;
-    /** The current entity inspect target. Null if we have no entity target. Type can only be HitResult.Type.ENTITY. */
-    @Nullable
-    private static EntityHitResult targetEntity;
+    
+    private static final Map<Integer, Ping.EntityData> INSPECT_ENTITIES = new HashMap<>();
+    private static final Map<BlockPos, Ping.BlockData> INSPECT_BLOCKS = new HashMap<>();
     
     
     private static Minecraft client() { return Minecraft.getInstance(); }
@@ -179,6 +159,7 @@ public final class InspectManager {
     public static void handleMainConfigSync( ClientboundMainConfigSyncPacket message ) {
         setMaxInspectRange( message.maxInspectRange() );
         trollHiddenBlocks = !message.allowInspectingHidden();
+        //setMaxInspectRange( message.maxFindPlayersRange() );//TODO sync find players range
         pingDuration = message.pingDuration();
         pingCooldown = message.pingCooldown();
     }
@@ -192,37 +173,45 @@ public final class InspectManager {
     /** Called every render frame. Updates the current render target and then renders all block highlights. */
     private static void render( Minecraft client, LevelRenderer levelRenderer, PoseStack poseStack, Matrix4f projectionMatrix,
                                 int renderTick, float partialTick, Camera camera, Frustum frustum ) {
+        if( client.level == null || client.player == null ) return;
+        
         // Update inspection target
-        LocalPlayer player = client.player;
-        if( !inspectOn || inspectRange <= 0.0 || player == null || player.isSpectator() ) {
+        INSPECT_ENTITIES.clear();
+        INSPECT_BLOCKS.clear();
+        if( !inspectOn || inspectRange <= 0.0 || client.player.isSpectator() ) {
             target = null;
-            targetBlock = null;
-            targetEntity = null;
         }
         else {
-            target = rayCast( client, player, partialTick );
-            targetBlock = target instanceof BlockHitResult ? (BlockHitResult) target : null;
-            targetEntity = target instanceof EntityHitResult ? (EntityHitResult) target : null;
+            target = rayCast( client, client.player, partialTick );
+            if( target instanceof EntityHitResult entityHit ) {
+                int entityId = entityHit.getEntity().getId();
+                PingManager.gatherAttachedEntities( INSPECT_ENTITIES, client.level, entityId,
+                        Ping.of( client.player, 0, entityId ) );
+            }
+            if( target instanceof BlockHitResult blockHit ) {
+                BlockPos blockPos = blockHit.getBlockPos();
+                PingManager.gatherAttachedBlocks( INSPECT_BLOCKS, client.level, blockPos,
+                        Ping.of( client.player, 0, blockPos ) );
+            }
         }
         
         // Render block highlights
-        if( client.level == null || !areAnyBlocksHighlighted() ) return;
-        BlockPos targetPos = targetBlock() == null ? null : targetBlock().getBlockPos();
+        if( !areAnyBlocksHighlighted() ) return;
         OutlineBlockEntity.ensurePresent( levelRenderer );
         Vec3 cameraPos = camera.getPosition();
         OutlineBufferSource bufferSource = client.renderBuffers().outlineBufferSource();
-        if( targetPos != null ) {
-            renderBlockHighlight( client, client.level, bufferSource, poseStack, cameraPos, targetPos,
-                    ClientConfig.PREFS.HIGHLIGHT_COLORS.inspectUsesDefault.get() ?
-                            ClientConfig.PREFS.HIGHLIGHT_COLORS.defaultColor.get() : -1 );
-        }
         for( Map.Entry<BlockPos, Ping.BlockData> ping : PingManager.get( client.level ).getBlockPings() ) {
-            if( !ping.getKey().equals( targetPos ) ) {
-                renderBlockHighlight( client, client.level, bufferSource, poseStack, cameraPos,
-                        ping.getKey(), ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ?
-                                ping.getValue().color : -1 );
+            renderBlockHighlight( client, client.level, bufferSource, poseStack, cameraPos, ping.getKey(),
+                    ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ? ping.getValue().color : -1 );
+            INSPECT_BLOCKS.remove( ping.getKey() );
+        }
+        if( !INSPECT_BLOCKS.isEmpty() ) {
+            for( Map.Entry<BlockPos, Ping.BlockData> ping : INSPECT_BLOCKS.entrySet() ) {
+                renderBlockHighlight( client, client.level, bufferSource, poseStack, cameraPos, ping.getKey(),
+                        ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ? ping.getValue().color : -1 );
             }
         }
+        //TODO figure out if we can get block entities to glow
     }
     
     /** Renders a single block highlight. If color is negative, the highlight color will be auto-assigned by the config. */

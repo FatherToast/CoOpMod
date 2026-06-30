@@ -28,6 +28,7 @@ public final class CoOpMod {
      *       + = incomplete new feature, ? = feature to consider adding)
      *  - general features
      *      - inspect
+     *      ? Jade integration (tooltip for inspect target)
      *      ? multiplayer pause
      *          ? automatic when no players online
      *          ? all/enough online players requested
@@ -38,6 +39,8 @@ public final class CoOpMod {
      *      ? salute/emotes
      *  - co-ordination features
      *      - ping inspected
+     *          + nameplate for pings
+     *          ? HUD arrows pointing to off-screen pings
      *      + highlight nearby players
      *      ? revive
      *  + protection features

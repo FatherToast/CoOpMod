@@ -1,7 +1,6 @@
 package fathertoast.coopmod.common.core;
 
 import fathertoast.coopmod.common.util.TrackingHelper;
-import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -9,7 +8,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 /**
  * Stores the metadata associated with a ping (not the ping target).
@@ -24,9 +22,13 @@ public abstract class Ping {
         return new EntityData( player, duration, entityId );
     }
     
+    //public static Ping.EntityData of( Ping.EntityData pingData ) { return new EntityData( pingData ); } // Just use same, no need to clone
+    
     public static Ping.BlockData of( Player player, int duration, BlockPos pos ) {
         return new BlockData( player, duration, pos );
     }
+    
+    public static Ping.BlockData of( Ping.BlockData pingData, Block block ) { return new BlockData( pingData, block ); }
     
     
     public final String playerName;
@@ -37,6 +39,12 @@ public abstract class Ping {
         playerName = player.getGameProfile().getName();
         expiryTime = player.level().getGameTime() + duration;
         color = TrackingHelper.isLocalPlayer( player ) ? -1 : PingManager.getColor( player );
+    }
+    
+    protected Ping( Ping other ) {
+        playerName = other.playerName;
+        expiryTime = other.expiryTime;
+        color = other.color;
     }
     
     protected Ping( FriendlyByteBuf buffer ) {
@@ -75,6 +83,8 @@ public abstract class Ping {
         
         private EntityData( Player player, int duration, int ignoredEntityId ) { super( player, duration ); }
         
+        //private EntityData( Ping other ) { super( other ); }
+        
         public EntityData( FriendlyByteBuf buffer ) { super( buffer ); }
         
         @Override
@@ -98,6 +108,11 @@ public abstract class Ping {
         private BlockData( Player player, int duration, BlockPos pos ) {
             super( player, duration );
             block = player.level().getBlockState( pos ).getBlock();
+        }
+        
+        private BlockData( Ping other, Block block ) {
+            super( other );
+            this.block = block;
         }
         
         public BlockData( FriendlyByteBuf buffer ) {

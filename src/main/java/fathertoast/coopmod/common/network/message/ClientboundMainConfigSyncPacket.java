@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 
 public record ClientboundMainConfigSyncPacket( double maxInspectRange,
                                                boolean allowInspectingHidden,
+                                               double maxFindPlayersRange,
                                                int pingDuration,
                                                int pingCooldown ) {
     
@@ -27,6 +28,7 @@ public record ClientboundMainConfigSyncPacket( double maxInspectRange,
             return new ClientboundMainConfigSyncPacket(
                     buffer.readDouble(),
                     buffer.readBoolean(),
+                    buffer.readDouble(),
                     buffer.readInt(),
                     buffer.readInt() );
         }
@@ -34,7 +36,7 @@ public record ClientboundMainConfigSyncPacket( double maxInspectRange,
             CoOpMod.LOG.error( ex );
             // noinspection CallToPrintStackTrace
             ex.printStackTrace();
-            return new ClientboundMainConfigSyncPacket( 0.0, false,
+            return new ClientboundMainConfigSyncPacket( 0.0, false, 0.0,
                     0, Integer.MAX_VALUE );
         }
     }
@@ -42,6 +44,7 @@ public record ClientboundMainConfigSyncPacket( double maxInspectRange,
     public static void encode( ClientboundMainConfigSyncPacket message, FriendlyByteBuf buffer ) {
         buffer.writeDouble( message.maxInspectRange() );
         buffer.writeBoolean( message.allowInspectingHidden() );
+        buffer.writeDouble( message.maxFindPlayersRange() );
         buffer.writeInt( message.pingDuration() );
         buffer.writeInt( message.pingCooldown() );
     }

@@ -16,7 +16,7 @@ import org.lwjgl.glfw.GLFW;
 @Mod.EventBusSubscriber( value = Dist.CLIENT, modid = CoOpMod.MOD_ID )
 public final class KeyBindingEvents {
     
-    public enum Mode { HOLD, TOGGLE, ALWAYS_ON }
+    public enum Mode { HOLD, TAP, TOGGLE, ALWAYS_ON }
     
     
     private static final String KEY_CAT = "key.categories." + CoOpMod.MOD_ID;
@@ -37,6 +37,7 @@ public final class KeyBindingEvents {
             case HOLD -> InspectManager.disableInspect();
             case ALWAYS_ON -> InspectManager.enableInspect();
         }
+        //TODO also update find players key
     }
     
     /** Registers this mod's additional key bindings. */

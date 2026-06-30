@@ -30,6 +30,7 @@ public class MainConfig extends AbstractConfigFile {
         return new ClientboundMainConfigSyncPacket(
                 GENERAL.maxInspectRange.get(),
                 GENERAL.allowInspectingHidden.get(),
+                GENERAL.maxFindPlayersRange.get(),
                 GENERAL.pingDuration.get(),
                 GENERAL.pingCooldown.get() );
     }
@@ -42,6 +43,7 @@ public class MainConfig extends AbstractConfigFile {
         
         public final DoubleField maxInspectRange;
         public final BooleanField allowInspectingHidden;
+        public final DoubleField maxFindPlayersRange;
         
         public final IntField pingDuration;
         public final IntField pingCooldown;
@@ -58,6 +60,11 @@ public class MainConfig extends AbstractConfigFile {
             allowInspectingHidden = SPEC.define( new BooleanField( "allow_inspecting_hidden", false,
                     "When enabled, allows players to recolor inspect highlights for normally hidden " +
                             "blocks, like silverfish-infested blocks." ) );
+            maxFindPlayersRange = SPEC.define( new DoubleField( "max_find_players_range",
+                    32.0, DoubleField.Range.NON_NEGATIVE,
+                    "How far players are allowed to inspect blocks/entities from, in blocks.",
+                    "Unless this is set to 0 (which completely disables the inspect feature), players are, at a " +
+                            "minimum, allowed to inspect anything they can physically reach." ) );
             
             SPEC.newLine();
             
