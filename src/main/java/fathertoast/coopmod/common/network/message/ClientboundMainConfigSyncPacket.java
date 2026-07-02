@@ -9,7 +9,7 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public record ClientboundMainConfigSyncPacket( double maxInspectRange,
-                                               boolean allowInspectingHidden,
+                                               boolean allowRecoloringHidden,
                                                double maxFindPlayersRange,
                                                int pingDuration,
                                                int pingCooldown ) {
@@ -43,7 +43,7 @@ public record ClientboundMainConfigSyncPacket( double maxInspectRange,
     
     public static void encode( ClientboundMainConfigSyncPacket message, FriendlyByteBuf buffer ) {
         buffer.writeDouble( message.maxInspectRange() );
-        buffer.writeBoolean( message.allowInspectingHidden() );
+        buffer.writeBoolean( message.allowRecoloringHidden() );
         buffer.writeDouble( message.maxFindPlayersRange() );
         buffer.writeInt( message.pingDuration() );
         buffer.writeInt( message.pingCooldown() );

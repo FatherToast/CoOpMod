@@ -47,7 +47,7 @@ public class ClientConfig {
         maxFindPlayersRange = message.maxFindPlayersRange();
         FindPlayersManager.updateRange();
         // Highlight feature
-        trollHiddenBlocks = !message.allowInspectingHidden();
+        trollHiddenBlocks = !message.allowRecoloringHidden();
     }
     
     /** The max value allowed for inspect range. Set by logical server. */
