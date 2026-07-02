@@ -60,7 +60,7 @@ public class MainConfig extends AbstractConfigFile {
                     "When enabled, allows players to recolor inspect highlights for normally hidden " +
                             "blocks, like silverfish-infested blocks." ) );
             maxFindPlayersRange = SPEC.define( new DoubleField( "max_find_players_range",
-                    32.0, DoubleField.Range.NON_NEGATIVE,
+                    3.4e38, DoubleField.Range.NON_NEGATIVE,
                     "How far players are allowed to find players from, in blocks.",
                     "Setting this to 0 completely disables the 'find players' feature." ) );
             

@@ -3,5 +3,6 @@
 
   "key.coopmod.inspect": "Inspect",
   "key.coopmod.ping": "Ping Inspect Target",
-  "key.coopmod.quick_ping": "Quick Ping"
+  "key.coopmod.quick_ping": "Quick Ping",
+  "key.coopmod.find_players": "Find Players"
 }

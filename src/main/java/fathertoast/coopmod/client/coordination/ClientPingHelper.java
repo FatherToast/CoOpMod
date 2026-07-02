@@ -2,13 +2,15 @@ package fathertoast.coopmod.client.coordination;
 
 import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.common.coordination.PingManager;
-import fathertoast.coopmod.common.event.GameEventHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 
 public final class ClientPingHelper {
+    
+    /** Number of ticks until we are allowed to send another ping. */
+    private static int localPingCooldown;
     
     /** @return The client's ping manager. Only returns null when not in game. */
     @Nullable
@@ -19,8 +21,8 @@ public final class ClientPingHelper {
     
     /** Pings the target, if possible. */
     public static void ping( @Nullable HitResult hitResult ) {
-        if( GameEventHandler.localPingCooldown <= 0 ) {
-            GameEventHandler.localPingCooldown = ClientConfig.getPingCooldown();
+        if( localPingCooldown <= 0 ) {
+            localPingCooldown = ClientConfig.getPingCooldown();
             PingManager.ping( Minecraft.getInstance().player, hitResult, ClientConfig.getPingDuration() );
         }
     }
@@ -30,13 +32,18 @@ public final class ClientPingHelper {
     
     /** Pings whatever the player is currently looking at. Performs a ray trace if not already inspecting something. */
     public static void quickPing() {
-        if( InspectManager.isInspectOn() ) { ping(); }
+        if( InspectManager.isEnabled() ) { ping(); }
         else {
             Minecraft client = Minecraft.getInstance();
             if( client.player != null && !client.player.isSpectator() ) {
                 ping( InspectManager.rayCast( client, client.player, 1.0F ) );
             }
         }
+    }
+    
+    /** Called at the end of each tick to update logic. */
+    public static void onTick() {
+        localPingCooldown = Math.max( 0, localPingCooldown - 1 );
     }
     
     

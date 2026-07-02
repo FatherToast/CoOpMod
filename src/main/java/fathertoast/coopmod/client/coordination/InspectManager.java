@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 public final class InspectManager {
     
     /** True while the player is using inspect mode. */
-    private static boolean inspectOn;
+    private static boolean enabled;
     /** The max distance that inspect can ray cast. Will not ray cast farther than render distance regardless of this value. */
     private static double range;
     
@@ -28,16 +28,16 @@ public final class InspectManager {
     private static HitResult target;
     
     /** Turns on "inspect" mode, which highlights what you are looking at and allows you to ping it. */
-    public static void enableInspect() { setInspectOn( true ); }
+    public static void enable() { setEnabled( true ); }
     
     /** Turns off "inspect" mode, which highlights what you are looking at and allows you to ping it. */
-    public static void disableInspect() { setInspectOn( false ); }
+    public static void disable() { setEnabled( false ); }
     
     /** Sets "inspect" mode on or off, which highlights what you are looking at and allows you to ping it. */
-    public static void setInspectOn( boolean on ) { inspectOn = on; }
+    public static void setEnabled( boolean on ) { enabled = on; }
     
     /** @return Whether "inspect" mode is on or off. */
-    public static boolean isInspectOn() { return inspectOn; }
+    public static boolean isEnabled() { return enabled; }
     
     /** Updates the inspection range based on current settings. */
     public static void updateRange() {
@@ -49,13 +49,13 @@ public final class InspectManager {
      * Null if not inspecting anything at the moment (not active or ray cast miss).
      */
     @Nullable
-    public static HitResult target() { return inspectOn ? target : null; }
+    public static HitResult target() { return enabled ? target : null; }
     
     /** Called every render frame. Updates the current inspection target and inspection highlights. */
     public static void updateTarget( Minecraft client, LocalPlayer player, ClientLevel level, float partialTick ) {
         HighlightManager.getInspectEntities().clear();
         HighlightManager.getInspectBlocks().clear();
-        if( !inspectOn || range <= 0.0 || player.isSpectator() ) {
+        if( !enabled || range <= 0.0 || player.isSpectator() ) {
             target = null;
         }
         else {

@@ -61,7 +61,7 @@ public class ClientPreferences extends AbstractConfigFile {
             
             SPEC.newLine();
             
-            keyMode = SPEC.define( new EnumField<>( "key_mode", HOLD, new KeyBindingEvents.Mode[] { HOLD, TOGGLE, ALWAYS_ON },
+            keyMode = SPEC.define( new EnumField<>( "key_mode", HOLD, KeyBindingEvents.MODES_NO_TAP,
                     "How the inspect key bind behaves. The key itself is bound in the game's options " +
                             "(Options > Controls > Key Binds)." ) );
         }

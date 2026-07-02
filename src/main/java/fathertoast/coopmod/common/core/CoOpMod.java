@@ -28,7 +28,7 @@ public final class CoOpMod {
      *       + = incomplete new feature, ? = feature to consider adding)
      *  - general features
      *      ? Jade integration (tooltip for inspect target)
-     *      ? multiplayer pause
+     *      ? multiplayer pause (looks like there's a mod that does this already, should we ditch this?)
      *          ? automatic when no players online
      *          ? all/enough online players requested
      *  + social features
@@ -39,7 +39,7 @@ public final class CoOpMod {
      *  - co-ordination features
      *      - inspect
      *      - ping
-     *      + find players
+     *      - find players
      *          ? render marker for players beyond render distance
      *      + nameplate for highlights
      *      + HUD element showing nearby players' statuses (health, etc.)

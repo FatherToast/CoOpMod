@@ -30,10 +30,6 @@ import net.minecraftforge.fml.common.Mod;
  */
 @Mod.EventBusSubscriber( modid = CoOpMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE )
 public final class GameEventHandler {
-    
-    @OnClient
-    public static int localPingCooldown;
-    
     /**
      * Called when a player logs in.
      *
@@ -54,12 +50,8 @@ public final class GameEventHandler {
     @SubscribeEvent( priority = EventPriority.NORMAL )
     static void onLevelTick( TickEvent.LevelTickEvent event ) {
         if( event.phase == TickEvent.Phase.END ) {
-            PingManager manager = PingManager.get( event.level );
-            if( event.level.isClientSide() ) {
-                localPingCooldown = Math.max( 0, localPingCooldown - 1 );
-            }
-            
             // Remove expired and OBE pings
+            PingManager manager = PingManager.get( event.level );
             long gameTime = event.level.getGameTime();
             manager.getEntityPings().removeIf( ( ping ) ->
                     ping.getValue().isExpired( gameTime ) || ping.getValue().isRemoved( event.level, ping.getKey() ) );

@@ -1,15 +1,71 @@
 package fathertoast.coopmod.client.coordination;
 
 import fathertoast.coopmod.client.config.ClientConfig;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.scores.Team;
 
 public final class FindPlayersManager {
     
-    /** The max distance that we can highlight friendly players. */
-    private static double range;
+    /** Number of ticks until we disable ourselves. */
+    private static int enabledDuration;
+    
+    /** True while the player is using find players mode. */
+    private static boolean enabled;
+    /** The max squared distance that we can highlight friendly players. */
+    private static double rangeSq;
+    
+    /** Turns on "find players" mode, which highlights nearby friendly players. */
+    public static void enable() { setEnabled( true ); }
+    
+    /** Turns off "find players" mode, which highlights nearby friendly players. */
+    public static void disable() { setEnabled( false ); }
+    
+    /** Sets "find players" mode on or off, which highlights nearby friendly players. */
+    public static void setEnabled( boolean on ) {
+        enabled = on;
+        enabledDuration = 0;
+    }
+    
+    /** Turns on "find players" mode, which highlights nearby friendly players. */
+    public static void tapEnable() {
+        setEnabled( true );
+        enabledDuration = ClientConfig.PREFS.PLAYER_FINDER.tapDuration.get();
+    }
+    
+    /** @return Whether "find players" mode is on or off. */
+    public static boolean isEnabled() { return enabled; }
     
     /** Updates the find players range based on current settings. */
     public static void updateRange() {
-        range = Math.min( ClientConfig.PREFS.PLAYER_FINDER.range.get(), ClientConfig.getMaxFindPlayersRange() );
+        rangeSq = Math.min( ClientConfig.PREFS.PLAYER_FINDER.range.get(), ClientConfig.getMaxFindPlayersRange() );
+        rangeSq *= rangeSq;
+    }
+    
+    /** @return True if the entity should be highlighted. */
+    public static boolean shouldHighlight( Entity entity ) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        return isEnabled() && !entity.isSpectator() && !entity.isRemoved() && player != null && !player.isSpectator() &&
+                !entity.equals( player ) && /* Comment this out for easier testing -> */ entity instanceof Player &&
+                !entity.isInvisibleTo( player ) && notOnOpposingTeams( player, entity ) &&
+                player.distanceToSqr( entity ) < rangeSq;
+    }
+    
+    /** @return True if the player and entity are either both teamless or on allied teams. */
+    private static boolean notOnOpposingTeams( Player player, Entity entity ) {
+        Team playerTeam = player.getTeam();
+        Team otherTeam = entity.getTeam();
+        return playerTeam == null && otherTeam == null || playerTeam != null && playerTeam.isAlliedTo( otherTeam );
+    }
+    
+    /** Called at the end of each tick to update logic. */
+    public static void onTick() {
+        if( enabledDuration > 0 ) {
+            enabledDuration--;
+            if( enabledDuration == 0 ) disable();
+        }
     }
     
     

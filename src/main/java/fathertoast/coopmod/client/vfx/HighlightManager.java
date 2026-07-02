@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import fathertoast.coopmod.client.config.ClientConfig;
+import fathertoast.coopmod.client.coordination.FindPlayersManager;
 import fathertoast.coopmod.common.coordination.Ping;
 import fathertoast.coopmod.common.coordination.PingManager;
 import fathertoast.crust.api.lib.CrustMath;
@@ -57,7 +58,8 @@ public final class HighlightManager {
     
     /** @return True if the entity should be rendered with a glow effect. */
     public static boolean shouldHighlight( Entity entity ) {
-        return getInspectEntities().containsKey( entity.getId() ) || PingManager.isPinged( entity );
+        return getInspectEntities().containsKey( entity.getId() ) || PingManager.isPinged( entity ) ||
+                FindPlayersManager.shouldHighlight( entity );
     }
     
     /** @return True if the block position should be rendered with a glow effect. */

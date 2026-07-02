@@ -1,12 +1,15 @@
 package fathertoast.coopmod.client.event;
 
 
+import fathertoast.coopmod.client.coordination.ClientPingHelper;
+import fathertoast.coopmod.client.coordination.FindPlayersManager;
 import fathertoast.coopmod.client.coordination.InspectManager;
 import fathertoast.coopmod.client.vfx.HighlightManager;
 import fathertoast.coopmod.common.core.CoOpMod;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -19,17 +22,18 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber( value = Dist.CLIENT, modid = CoOpMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE )
 public final class ClientGameEventHandler {
     
-    //    /**
-    //     * Called at the start and end of each client tick.
-    //     *
-    //     * @param event The event data.
-    //     */
-    //    @SubscribeEvent( priority = EventPriority.NORMAL )
-    //    static void onClientTick( TickEvent.ClientTickEvent event ) {
-    //        if( event.phase == TickEvent.Phase.END ) {
-    //            InspectManager.onTickEnd();
-    //        }
-    //    }
+    /**
+     * Called at the start and end of each client tick.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onClientTick( TickEvent.ClientTickEvent event ) {
+        if( event.phase == TickEvent.Phase.END ) {
+            ClientPingHelper.onTick();
+            FindPlayersManager.onTick();
+        }
+    }
     
     /**
      * Called at several stages of level rendering.
@@ -43,6 +47,7 @@ public final class ClientGameEventHandler {
             Minecraft client = Minecraft.getInstance();
             if( client.level == null || client.player == null ) return;
             
+            // We do this here so that it is always in sync with visuals
             InspectManager.updateTarget( client, client.player, client.level, event.getPartialTick() );
             
             HighlightManager.renderBlockOutlines( client, client.level, event.getLevelRenderer(), event.getPoseStack(),
