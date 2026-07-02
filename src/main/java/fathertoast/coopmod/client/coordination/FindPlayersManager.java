@@ -1,12 +1,21 @@
 package fathertoast.coopmod.client.coordination;
 
 import fathertoast.coopmod.client.config.ClientConfig;
+import fathertoast.coopmod.client.vfx.HighlightManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.Team;
 
+/**
+ * Controls the 'find players' function. This causes all friendly players within the configured distance
+ * to be highlighted, such that they are easier to find.
+ * <p>
+ * Cannot help finding players beyond your render distance, for now.
+ *
+ * @see HighlightManager
+ */
 public final class FindPlayersManager {
     
     /** Number of ticks until we disable ourselves. */

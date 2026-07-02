@@ -38,6 +38,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 
+/**
+ * Keeps track of what should be highlighted and renders highlights as needed.
+ */
 public final class HighlightManager {
     
     /** The entities we should highlight for the inspect feature. */

@@ -7,6 +7,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Performs the client-side ping functions. Acts as the bridge between the 'inspect' function (which only exists on
+ * the client side) and the 'ping' function (which exists on both sides).
+ *
+ * @see InspectManager
+ * @see PingManager
+ */
 public final class ClientPingHelper {
     
     /** Number of ticks until we are allowed to send another ping. */

@@ -16,6 +16,13 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Controls the 'inspect' function. This performs ray casts while the player is inspecting to identify an
+ * inspect target (i.e., what the player is looking at). The inspect target is highlighted and can be pinged.
+ *
+ * @see HighlightManager
+ * @see ClientPingHelper
+ */
 public final class InspectManager {
     
     /** True while the player is using inspect mode. */
