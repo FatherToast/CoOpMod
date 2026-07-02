@@ -28,12 +28,12 @@ public final class CoOpMod {
      *       + = incomplete new feature, ? = feature to consider adding)
      *  - general features
      *      ? Jade integration (tooltip for inspect target)
-     *      ? multiplayer pause (looks like there's a mod that does this already, should we ditch this?)
+     *      ? multiplayer pause ("Multiplayer Server Pause" does this, maybe ditch)
      *          ? automatic when no players online
      *          ? all/enough online players requested
      *  + social features
      *      ? player inspect
-     *      ? chat item linking
+     *      ? chat item linking ("Show Me What You Got" does this, maybe ditch)
      *      ? chat emojis
      *      ? salute/emotes
      *  - co-ordination features
