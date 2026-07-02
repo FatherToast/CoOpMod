@@ -27,7 +27,6 @@ public final class CoOpMod {
      * (KEY: - = complete in current version, o = incomplete feature from previous version,
      *       + = incomplete new feature, ? = feature to consider adding)
      *  - general features
-     *      - inspect
      *      ? Jade integration (tooltip for inspect target)
      *      ? multiplayer pause
      *          ? automatic when no players online
@@ -38,10 +37,13 @@ public final class CoOpMod {
      *      ? chat emojis
      *      ? salute/emotes
      *  - co-ordination features
-     *      - ping inspected
-     *          + nameplate for pings
-     *          ? HUD arrows pointing to off-screen pings
-     *      + highlight nearby players
+     *      - inspect
+     *      - ping
+     *      + find players
+     *          ? render marker for players beyond render distance
+     *      + nameplate for highlights
+     *      + HUD element showing nearby players' statuses (health, etc.)
+     *      ? HUD arrows pointing to off-screen highlights
      *      ? revive
      *  + protection features
      *      + friendly fire

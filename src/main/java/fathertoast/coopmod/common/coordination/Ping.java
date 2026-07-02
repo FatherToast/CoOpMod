@@ -1,4 +1,4 @@
-package fathertoast.coopmod.common.core;
+package fathertoast.coopmod.common.coordination;
 
 import fathertoast.coopmod.common.util.TrackingHelper;
 import net.minecraft.core.BlockPos;

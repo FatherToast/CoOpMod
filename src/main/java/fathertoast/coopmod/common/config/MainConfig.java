@@ -54,17 +54,15 @@ public class MainConfig extends AbstractConfigFile {
             
             maxInspectRange = SPEC.define( new DoubleField( "max_inspect_range",
                     32.0, DoubleField.Range.NON_NEGATIVE,
-                    "How far players are allowed to inspect blocks/entities from, in blocks.",
-                    "Unless this is set to 0 (which completely disables the inspect feature), players are, at a " +
-                            "minimum, allowed to inspect anything they can physically reach." ) );
+                    "How far players are allowed to inspect and ping blocks/entities from, in blocks.",
+                    "Setting this to 0 completely disables both the 'inspect' and 'ping' features." ) );
             allowInspectingHidden = SPEC.define( new BooleanField( "allow_inspecting_hidden", false,
                     "When enabled, allows players to recolor inspect highlights for normally hidden " +
                             "blocks, like silverfish-infested blocks." ) );
             maxFindPlayersRange = SPEC.define( new DoubleField( "max_find_players_range",
                     32.0, DoubleField.Range.NON_NEGATIVE,
-                    "How far players are allowed to inspect blocks/entities from, in blocks.",
-                    "Unless this is set to 0 (which completely disables the inspect feature), players are, at a " +
-                            "minimum, allowed to inspect anything they can physically reach." ) );
+                    "How far players are allowed to find players from, in blocks.",
+                    "Setting this to 0 completely disables the 'find players' feature." ) );
             
             SPEC.newLine();
             

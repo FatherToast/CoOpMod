@@ -3,7 +3,7 @@ package fathertoast.coopmod.common.event;
 
 import fathertoast.coopmod.common.config.Config;
 import fathertoast.coopmod.common.core.CoOpMod;
-import fathertoast.coopmod.common.core.PingManager;
+import fathertoast.coopmod.common.coordination.PingManager;
 import fathertoast.crust.api.util.OnClient;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;

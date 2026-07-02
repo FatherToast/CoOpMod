@@ -1,8 +1,8 @@
 package fathertoast.coopmod.common.network.message;
 
 import fathertoast.coopmod.common.core.CoOpMod;
-import fathertoast.coopmod.common.core.Ping;
-import fathertoast.coopmod.common.core.PingManager;
+import fathertoast.coopmod.common.coordination.Ping;
+import fathertoast.coopmod.common.coordination.PingManager;
 import fathertoast.coopmod.common.network.work.ClientWork;
 import fathertoast.coopmod.common.util.TrackingHelper;
 import io.netty.handler.codec.DecoderException;

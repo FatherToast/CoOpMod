@@ -1,6 +1,5 @@
 package fathertoast.coopmod.client.vfx;
 
-import fathertoast.coopmod.client.InspectManager;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -38,5 +37,5 @@ public class OutlineBlockEntity extends BlockEntity {
     public AABB getRenderBoundingBox() { return INFINITE_EXTENT_AABB; }
     
     @Override // IForgeBlockEntity
-    public boolean hasCustomOutlineRendering( Player player ) { return InspectManager.areAnyBlocksHighlighted(); }
+    public boolean hasCustomOutlineRendering( Player player ) { return HighlightManager.areAnyBlocksHighlighted(); }
 }

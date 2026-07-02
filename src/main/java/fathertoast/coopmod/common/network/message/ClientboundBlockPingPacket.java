@@ -1,7 +1,7 @@
 package fathertoast.coopmod.common.network.message;
 
 import fathertoast.coopmod.common.core.CoOpMod;
-import fathertoast.coopmod.common.core.Ping;
+import fathertoast.coopmod.common.coordination.Ping;
 import fathertoast.coopmod.common.network.work.ClientWork;
 import io.netty.handler.codec.DecoderException;
 import net.minecraft.core.BlockPos;

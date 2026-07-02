@@ -1,16 +1,16 @@
-package fathertoast.coopmod.client;
+package fathertoast.coopmod.client.config;
 
+import fathertoast.coopmod.client.coordination.FindPlayersManager;
+import fathertoast.coopmod.client.coordination.InspectManager;
+import fathertoast.coopmod.client.event.KeyBindingEvents;
 import fathertoast.coopmod.common.config.ColorIntValueCodec;
-import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.crust.api.config.common.AbstractConfigCategory;
 import fathertoast.crust.api.config.common.AbstractConfigFile;
 import fathertoast.crust.api.config.common.ConfigManager;
-import fathertoast.crust.api.config.common.field.BooleanField;
-import fathertoast.crust.api.config.common.field.ColorIntField;
-import fathertoast.crust.api.config.common.field.DoubleField;
-import fathertoast.crust.api.config.common.field.EnumField;
+import fathertoast.crust.api.config.common.field.*;
 import fathertoast.crust.api.config.common.field.collection.BlockStateMapField;
 import fathertoast.crust.api.config.common.field.collection.EntityMapField;
+import fathertoast.crust.api.config.common.file.TomlHelper;
 import fathertoast.crust.api.config.common.value.collection.BlockStateMap;
 import fathertoast.crust.api.config.common.value.collection.EntityMap;
 import fathertoast.crust.api.util.BlockStatePropertyMap;
@@ -20,37 +20,17 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import static fathertoast.coopmod.client.KeyBindingEvents.Mode.*;
+import static fathertoast.coopmod.client.event.KeyBindingEvents.Mode.*;
+import static fathertoast.coopmod.client.event.KeyBindingEvents.Mode.TAP;
 
-/**
- * Used as the sole hub for all client-side config access from outside the config package.
- * <p>
- * Contains references to all client-side config files used in this mod, which in turn provide direct
- * 'getter' access to each configurable value.
- * <p>
- * Also, this contains the main client-side config spec itself.
- */
-public class ClientConfig extends AbstractConfigFile {
-    
-    public static ClientConfig PREFS;
-    
-    /** Performs loading of configs in this mod. Added to deferred work queue at common setup. */
-    public static void initialize() {
-        ConfigManager manager = ConfigManager.getRequired( CoOpMod.MOD_ID );
-        
-        PREFS = new ClientConfig( manager, "_client_prefs" );
-        PREFS.SPEC.initialize();
-    }
-    
-    
-    // ---- Main Client Config Impl ---- //
+public class ClientPreferences extends AbstractConfigFile {
     
     public final Inspection INSPECTION;
     public final PlayerFinder PLAYER_FINDER;
     public final HighlightColors HIGHLIGHT_COLORS;
     
     /** Builds the config spec that should be used for this config. */
-    ClientConfig( ConfigManager manager, String fileName ) {
+    ClientPreferences( ConfigManager manager, String fileName ) {
         super( manager, fileName,
                 "This config contains personal preference settings." );
         
@@ -62,23 +42,22 @@ public class ClientConfig extends AbstractConfigFile {
         SPEC.callback( KeyBindingEvents::updateKeyMode );
     }
     
-    public static class Inspection extends AbstractConfigCategory<ClientConfig> {
+    public static class Inspection extends AbstractConfigCategory<ClientPreferences> {
         
         public final DoubleField range;
         
         public final EnumField<KeyBindingEvents.Mode> keyMode;
         
-        Inspection( ClientConfig parent ) {
+        Inspection( ClientPreferences parent ) {
             super( parent, "inspect",
-                    "Options to customize the 'inspect' function (and indirectly, the 'ping' function)." );
+                    "Options to customize the 'inspect' and 'ping' functions." );
             
             range = SPEC.define( new DoubleField( "range",
                     3.4e38, DoubleField.Range.NON_NEGATIVE,
-                    "How far you can inspect blocks/entities from, in blocks.",
+                    "How far you can inspect and ping blocks/entities from, in blocks.",
                     "Leaving this at a very high value effectively just sets your range to the max allowed by the " +
                             "server or to your render distance, whichever is lower." ) );
-            // We have to update the calculated 'effective inspection range'
-            SPEC.callback( InspectManager::updateInspectRange );
+            SPEC.callback( InspectManager::updateRange );
             
             SPEC.newLine();
             
@@ -88,13 +67,14 @@ public class ClientConfig extends AbstractConfigFile {
         }
     }
     
-    public static class PlayerFinder extends AbstractConfigCategory<ClientConfig> {
+    public static class PlayerFinder extends AbstractConfigCategory<ClientPreferences> {
         
         public final DoubleField range;
         
         public final EnumField<KeyBindingEvents.Mode> keyMode;
+        public final IntField tapDuration;
         
-        PlayerFinder( ClientConfig parent ) {
+        PlayerFinder( ClientPreferences parent ) {
             super( parent, "player_finder",
                     "Options to customize the 'find players' function." );
             
@@ -103,19 +83,23 @@ public class ClientConfig extends AbstractConfigFile {
                     "How far the 'find players' function can highlight friendly players, in blocks.",
                     "Leaving this at a very high value effectively just sets your range to the max allowed by the " +
                             "server or to your render distance, whichever is lower." ) );
-            // We have to update the calculated 'effective find players range'
-            //SPEC.callback( InspectManager::updateInspectRange );//TODO we'll need to do this again
+            SPEC.callback( FindPlayersManager::updateRange );
             
             SPEC.newLine();
             
             keyMode = SPEC.define( new EnumField<>( "key_mode", TAP,
                     "How the find players key bind behaves. The key itself is bound in the game's options " +
                             "(Options > Controls > Key Binds)." ) );
+            tapDuration = SPEC.define( new IntField( "tap_duration",
+                    100, IntField.Range.NON_NEGATIVE,
+                    "If the key mode is set to \"" + TomlHelper.toLiteralForComment( TAP ) +
+                            "\", this is the time, in ticks, that player finding will be on for when the keybind is " +
+                            "pressed. (20 ticks = 1 second)." ) );
         }
     }
     
     @SuppressWarnings( "UnstableApiUsage" )
-    public static class HighlightColors extends AbstractConfigCategory<ClientConfig> {
+    public static class HighlightColors extends AbstractConfigCategory<ClientPreferences> {
         
         public final ColorIntField defaultColor;
         
@@ -125,7 +109,7 @@ public class ClientConfig extends AbstractConfigFile {
         
         public final BlockStateMapField<Integer> blockColors;
         
-        HighlightColors( ClientConfig parent ) {
+        HighlightColors( ClientPreferences parent ) {
             super( parent, "highlight_colors",
                     "Options to customize the colors for ping and inspect highlights (their visual outlines)." );
             
@@ -133,7 +117,7 @@ public class ClientConfig extends AbstractConfigFile {
                     "The color used for all highlights not specified in the following fields. Note that " +
                             "when the settings below are all at their default values, this color will never be used." ) );
             
-            SPEC.newLine();//TODO add in some auto-coloring options for players, personal colors, and team colors
+            SPEC.newLine();//TODO add in some auto-coloring options for players, personal colors, and team colors (note team colors currently override all settings)
             
             playerColors = SPEC.define( new BooleanField( "player_colored_pings", false,
                     "When enabled, this causes other players' pings to match their personal color. " +

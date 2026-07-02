@@ -1,6 +1,9 @@
-package fathertoast.coopmod.client;
+package fathertoast.coopmod.client.event;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import fathertoast.coopmod.client.config.ClientConfig;
+import fathertoast.coopmod.client.coordination.ClientPingHelper;
+import fathertoast.coopmod.client.coordination.InspectManager;
 import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.crust.api.client.SortedKeyMapping;
 import net.minecraft.client.KeyMapping;
@@ -59,17 +62,17 @@ public final class KeyBindingEvents {
             if( event.getButton() == INSPECT.getKey().getValue() && INSPECT.isConflictContextAndModifierActive() ) {
                 switch( ClientConfig.PREFS.INSPECTION.keyMode.get() ) {
                     case HOLD -> InspectManager.enableInspect();
-                    case TOGGLE -> InspectManager.setInspectOn( !InspectManager.getInspectOn() );
+                    case TOGGLE -> InspectManager.setInspectOn( !InspectManager.isInspectOn() );
                 }
             }
             else if( event.getButton() == PING.getKey().getValue() && PING.isConflictContextAndModifierActive() ) {
-                if( InspectManager.getInspectOn() ) {
-                    if( InspectManager.target() != null ) InspectManager.ping();
+                if( InspectManager.isInspectOn() ) {
+                    if( InspectManager.target() != null ) ClientPingHelper.ping();
                     if( ClientConfig.PREFS.INSPECTION.keyMode.get() == Mode.HOLD ) event.setCanceled( true );
                 }
             }
             else if( event.getButton() == QUICK_PING.getKey().getValue() && QUICK_PING.isConflictContextAndModifierActive() ) {
-                InspectManager.quickPing();
+                ClientPingHelper.quickPing();
             }
         }
     }
@@ -86,14 +89,14 @@ public final class KeyBindingEvents {
             if( event.getKey() == INSPECT.getKey().getValue() && INSPECT.isConflictContextAndModifierActive() ) {
                 switch( ClientConfig.PREFS.INSPECTION.keyMode.get() ) {
                     case HOLD -> InspectManager.enableInspect();
-                    case TOGGLE -> InspectManager.setInspectOn( !InspectManager.getInspectOn() );
+                    case TOGGLE -> InspectManager.setInspectOn( !InspectManager.isInspectOn() );
                 }
             }
             else if( event.getKey() == PING.getKey().getValue() && PING.isConflictContextAndModifierActive() ) {
-                if( InspectManager.getInspectOn() && InspectManager.target() != null ) InspectManager.ping();
+                if( InspectManager.isInspectOn() && InspectManager.target() != null ) ClientPingHelper.ping();
             }
             else if( event.getKey() == QUICK_PING.getKey().getValue() && QUICK_PING.isConflictContextAndModifierActive() ) {
-                InspectManager.quickPing();
+                ClientPingHelper.quickPing();
             }
         }
         else if( event.getAction() == GLFW.GLFW_RELEASE ) {

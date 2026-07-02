@@ -1,7 +1,7 @@
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 @OnlyIn( Dist.CLIENT )
-package fathertoast.coopmod.client;
+package fathertoast.coopmod.client.coordination;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraftforge.api.distmarker.Dist;

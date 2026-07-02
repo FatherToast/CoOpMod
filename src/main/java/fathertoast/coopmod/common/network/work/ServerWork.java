@@ -1,7 +1,7 @@
 package fathertoast.coopmod.common.network.work;
 
 import fathertoast.coopmod.common.config.Config;
-import fathertoast.coopmod.common.core.PingManager;
+import fathertoast.coopmod.common.coordination.PingManager;
 import fathertoast.coopmod.common.network.message.ServerboundBlockPingPacket;
 import fathertoast.coopmod.common.network.message.ServerboundEntityPingPacket;
 import fathertoast.crust.api.lib.DeferredAction;

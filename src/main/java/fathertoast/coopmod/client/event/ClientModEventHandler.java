@@ -1,5 +1,6 @@
-package fathertoast.coopmod.client;
+package fathertoast.coopmod.client.event;
 
+import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.crust.api.config.client.ClientConfigUtil;
 import net.minecraftforge.api.distmarker.Dist;

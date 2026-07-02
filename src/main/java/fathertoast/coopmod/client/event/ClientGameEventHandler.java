@@ -1,7 +1,10 @@
-package fathertoast.coopmod.client;
+package fathertoast.coopmod.client.event;
 
 
+import fathertoast.coopmod.client.coordination.InspectManager;
+import fathertoast.coopmod.client.vfx.HighlightManager;
 import fathertoast.coopmod.common.core.CoOpMod;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -37,7 +40,13 @@ public final class ClientGameEventHandler {
     @SubscribeEvent( priority = EventPriority.NORMAL )
     static void onRenderLevel( RenderLevelStageEvent event ) {
         if( event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS ) {
-            InspectManager.render( event );
+            Minecraft client = Minecraft.getInstance();
+            if( client.level == null || client.player == null ) return;
+            
+            InspectManager.updateTarget( client, client.player, client.level, event.getPartialTick() );
+            
+            HighlightManager.renderBlockOutlines( client, client.level, event.getLevelRenderer(), event.getPoseStack(),
+                    event.getProjectionMatrix(), event.getRenderTick(), event.getPartialTick(), event.getCamera(), event.getFrustum() );
         }
     }
     
