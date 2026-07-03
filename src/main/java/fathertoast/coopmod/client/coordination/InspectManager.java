@@ -11,10 +11,11 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * Controls the 'inspect' function. This performs ray casts while the player is inspecting to identify an
@@ -84,7 +85,7 @@ public final class InspectManager {
      * Performs a ray cast from the player's eyes to identify the world object on the HUD crosshairs,
      * if any valid thing is in the inspect range.
      *
-     * @return The block or entity hit result, or null if the ray cast missed.
+     * @return The block or entity hit result, or null if the ray cast did not hit anything within range.
      */
     @Nullable
     public static HitResult rayCast( Minecraft client, LocalPlayer player, float partialTick ) {
@@ -99,23 +100,76 @@ public final class InspectManager {
                 ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player ) );
         if( blockHit.getType() == HitResult.Type.MISS ) blockHit = null;
         
-        double distSq = blockHit != null ? blockHit.getLocation().distanceToSqr( eyePos ) : range * range;
-        AABB searchBounds = player.getBoundingBox().expandTowards( viewVec.scale( range ) ).inflate( 1.0 );
-        
         // Then, ray cast for an entity
-        EntityRenderDispatcher renderDispatcher = client.getEntityRenderDispatcher();
-        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult( player, eyePos, endPos,
-                searchBounds, entity -> InspectManager.canTarget( entity, player, renderDispatcher ),
-                distSq );
+        AABB searchBounds = player.getBoundingBox().expandTowards( viewVec.scale( range ) ).inflate( 1.0 );
+        double rangeLimitSq = blockHit != null ? blockHit.getLocation().distanceToSqr( eyePos ) : range * range;
+        EntityHitResult entityHit = entityRayCast( client, player, eyePos, endPos, searchBounds, rangeLimitSq );
         
         // Return the closest of the two hits
-        return entityHit == null || entityHit.getLocation().distanceToSqr( eyePos ) >= distSq ? blockHit : entityHit;
+        return entityHit == null ? blockHit : entityHit;
+    }
+    
+    /** @return The entity hit result, or null if the ray cast did not hit anything within range. */
+    @Nullable
+    private static EntityHitResult entityRayCast( Minecraft client, LocalPlayer player, Vec3 eyePos, Vec3 endPos,
+                                                  AABB bounds, double rangeSq ) {
+        double nearestHitDistSq = rangeSq;
+        Entity nearestHit = null;
+        Vec3 nearestHitPos = null;
+        
+        EntityRenderDispatcher renderDispatcher = client.getEntityRenderDispatcher();
+        for( Entity entity : player.level().getEntities( player, bounds,
+                entity -> InspectManager.canTarget( entity, player, renderDispatcher ) ) ) {
+            AABB entityBounds = getBounds( entity );
+            if( entityBounds == null ) continue;
+            
+            Optional<Vec3> clipResult = entityBounds.clip( eyePos, endPos );
+            if( entityBounds.contains( eyePos ) ) {
+                nearestHit = entity;
+                nearestHitPos = clipResult.orElse( eyePos );
+                break;
+            }
+            else if( clipResult.isPresent() ) {
+                Vec3 hitPos = clipResult.get();
+                double hitDistSq = eyePos.distanceToSqr( hitPos );
+                if( hitDistSq < nearestHitDistSq ) {
+                    nearestHit = entity;
+                    nearestHitPos = hitPos;
+                    nearestHitDistSq = hitDistSq;
+                }
+            }
+        }
+        return nearestHit == null ? null : new EntityHitResult( nearestHit, nearestHitPos );
     }
     
     /** @return True if the entity is a valid inspect target. */
     private static boolean canTarget( Entity entity, LocalPlayer player, EntityRenderDispatcher renderDispatcher ) {
         return !entity.isSpectator() && !entity.isRemoved() && !entity.isInvisibleTo( player ) &&
-                !(renderDispatcher.getRenderer( entity ) instanceof NoopRenderer);
+                !(renderDispatcher.getRenderer( entity ) instanceof NoopRenderer) &&
+                (entity.canRiderInteract() || !entity.isPassengerOfSameVehicle( player ));
+    }
+    
+    /** Minimum bounding box size applied in each axis to make inspecting very small entities easier. */
+    private static final double MIN_BOUNDS = 0.9;
+    
+    /** @return The bounding box to use for a specific entity for ray tracing, or null if the entity cannot be hit. */
+    @Nullable
+    private static AABB getBounds( Entity entity ) {
+        AABB bb = entity.getBoundingBox().inflate( entity.getPickRadius() );
+        double xSize = bb.getXsize();
+        double ySize = bb.getYsize();
+        double zSize = bb.getZsize();
+        if( xSize == 0.0 || ySize == 0.0 || zSize == 0.0 ) return null;
+        boolean xTooSmall = MIN_BOUNDS > xSize;
+        boolean yTooSmall = MIN_BOUNDS > ySize;
+        boolean zTooSmall = MIN_BOUNDS > zSize;
+        if( xTooSmall || yTooSmall || zTooSmall ) {
+            return bb.inflate(
+                    xTooSmall ? (MIN_BOUNDS - xSize) / 2.0 : 0.0,
+                    yTooSmall ? (MIN_BOUNDS - ySize) / 2.0 : 0.0,
+                    zTooSmall ? (MIN_BOUNDS - zSize) / 2.0 : 0.0 );
+        }
+        return bb;
     }
     
     
