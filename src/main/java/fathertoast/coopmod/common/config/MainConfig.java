@@ -2,12 +2,15 @@ package fathertoast.coopmod.common.config;
 
 import fathertoast.coopmod.common.network.PacketHandler;
 import fathertoast.coopmod.common.network.message.ClientboundMainConfigSyncPacket;
+import fathertoast.coopmod.common.protection.FriendlyFireHelper;
 import fathertoast.crust.api.config.common.AbstractConfigCategory;
 import fathertoast.crust.api.config.common.AbstractConfigFile;
 import fathertoast.crust.api.config.common.ConfigManager;
 import fathertoast.crust.api.config.common.field.BooleanField;
 import fathertoast.crust.api.config.common.field.DoubleField;
+import fathertoast.crust.api.config.common.field.EnumField;
 import fathertoast.crust.api.config.common.field.IntField;
+import fathertoast.crust.api.config.common.file.TomlHelper;
 import net.minecraft.server.level.ServerPlayer;
 
 public class MainConfig extends AbstractConfigFile {
@@ -41,6 +44,9 @@ public class MainConfig extends AbstractConfigFile {
     
     public static class General extends AbstractConfigCategory<MainConfig> {
         
+        public final DoubleField friendlyFireMulti;
+        public final EnumField<FriendlyFireHelper.Mode> friendlyFireMode;
+        
         public final DoubleField maxInspectRange;
         public final BooleanField allowRecoloringHidden;
         public final DoubleField maxFindPlayersRange;
@@ -51,6 +57,24 @@ public class MainConfig extends AbstractConfigFile {
         General( MainConfig parent ) {
             super( parent, "general",
                     "Options to customize misc settings that apply to the mod as a whole." );
+            
+            friendlyFireMulti = SPEC.define( new DoubleField( "friendly_fire.multiplier",
+                    0.2, DoubleField.Range.NON_NEGATIVE,
+                    "Multiplier applied to damage dealt between friendly players. When set to 0, " +
+                            "friendly players cannot damage each other." ) );
+            friendlyFireMode = SPEC.define( new EnumField<>( "friendly_fire.mode", FriendlyFireHelper.Mode.DEFAULT,
+                    "Specifies when two players are considered 'friendly' and therefore have the " +
+                            "friendly fire multiplier applied.",
+                    " * " + TomlHelper.toLiteral( FriendlyFireHelper.Mode.OFF ) +
+                            " - Nothing is considered friendly fire (this feature is disabled).",
+                    " * " + TomlHelper.toLiteral( FriendlyFireHelper.Mode.DEFAULT ) +
+                            " - Players are only considered non-friendly if they are in an opposing team (teamless " +
+                            "players are friendly to all).",
+                    " * " + TomlHelper.toLiteral( FriendlyFireHelper.Mode.STRICT ) +
+                            " - Players are only considered friendly if you are both in allied teams (teamless " +
+                            "players are non-friendly to all)." ) );
+            
+            SPEC.newLine();
             
             maxInspectRange = SPEC.define( new DoubleField( "max_inspect_range",
                     32.0, DoubleField.Range.NON_NEGATIVE,

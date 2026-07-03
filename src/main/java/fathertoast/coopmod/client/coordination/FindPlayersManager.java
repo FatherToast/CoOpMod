@@ -62,11 +62,11 @@ public final class FindPlayersManager {
                 player.distanceToSqr( entity ) < rangeSq;
     }
     
-    /** @return True if the player and entity are either both teamless or on allied teams. */
+    /** @return False only if both the player and entity are in teams and those teams are not allied. */
     private static boolean notOnOpposingTeams( Player player, Entity entity ) {
         Team playerTeam = player.getTeam();
         Team otherTeam = entity.getTeam();
-        return playerTeam == null && otherTeam == null || playerTeam != null && playerTeam.isAlliedTo( otherTeam );
+        return playerTeam == null || otherTeam == null || playerTeam.isAlliedTo( otherTeam );
     }
     
     /** Called at the end of each tick to update logic. */

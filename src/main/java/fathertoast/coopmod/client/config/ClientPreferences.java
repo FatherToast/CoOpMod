@@ -92,7 +92,7 @@ public class ClientPreferences extends AbstractConfigFile {
                             "(Options > Controls > Key Binds)." ) );
             tapDuration = SPEC.define( new IntField( "tap_duration",
                     100, IntField.Range.NON_NEGATIVE,
-                    "If the key mode is set to \"" + TomlHelper.toLiteralForComment( TAP ) +
+                    "If the key mode is set to \"" + TomlHelper.toLiteral( TAP ) +
                             "\", this is the time, in ticks, that player finding will be on for when the keybind is " +
                             "pressed. (20 ticks = 1 second)." ) );
         }

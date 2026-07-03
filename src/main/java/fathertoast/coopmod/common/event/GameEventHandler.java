@@ -2,19 +2,21 @@ package fathertoast.coopmod.common.event;
 
 
 import fathertoast.coopmod.common.config.Config;
-import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.coopmod.common.coordination.PingManager;
-import fathertoast.crust.api.util.OnClient;
+import fathertoast.coopmod.common.core.CoOpMod;
+import fathertoast.coopmod.common.protection.FriendlyFireHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -68,7 +70,30 @@ public final class GameEventHandler {
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
     static void onLivingAttack( LivingAttackEvent event ) {
-        //TODO Friendly fire protection goes here?
+        LivingEntity entity = event.getEntity();
+        if( !entity.level().isClientSide() ) {
+            if( entity instanceof Player player && FriendlyFireHelper.shouldCancelDamage( player, event.getSource() ) ) {
+                event.setCanceled( true );
+            }
+        }
+    }
+    
+    /**
+     * Called when damage is being dealt after block damage reduction, right before armor and enchantment
+     * damage reduction is calculated.
+     * If the event is canceled or damage is set to 0, no damage is dealt, but some effects like blocking
+     * have already happened and helmet damage will happen anyway.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onLivingHurt( LivingHurtEvent event ) {
+        LivingEntity entity = event.getEntity();
+        if( !entity.level().isClientSide() ) {
+            if( entity instanceof Player player && FriendlyFireHelper.isFriendlyFire( player, event.getSource() ) ) {
+                event.setAmount( event.getAmount() * Config.MAIN.GENERAL.friendlyFireMulti.getFloat() );
+            }
+        }
     }
     
     /**

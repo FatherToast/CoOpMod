@@ -45,8 +45,8 @@ public final class CoOpMod {
      *      + HUD element showing nearby players' statuses (health, etc.)
      *      ? HUD arrows pointing to off-screen highlights
      *      ? revive
-     *  + protection features
-     *      + friendly fire
+     *  - protection features
+     *      - friendly fire
      *      + chunk
      *      + inventory
      *          ? keep items
