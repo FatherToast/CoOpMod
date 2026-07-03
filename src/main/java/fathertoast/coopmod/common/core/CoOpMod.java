@@ -27,7 +27,7 @@ public final class CoOpMod {
      * (KEY: - = complete in current version, o = incomplete feature from previous version,
      *       + = incomplete new feature, ? = feature to consider adding)
      *  - general features
-     *      ? Jade integration (tooltip for inspect target)
+     *      - Jade integration (tooltip for inspect target)
      *      ? multiplayer pause ("Multiplayer Server Pause" does this, maybe ditch)
      *          ? automatic when no players online
      *          ? all/enough online players requested
