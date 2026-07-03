@@ -3,6 +3,7 @@ package fathertoast.coopmod.client.config;
 import fathertoast.coopmod.client.coordination.FindPlayersManager;
 import fathertoast.coopmod.client.coordination.InspectManager;
 import fathertoast.coopmod.client.event.KeyBindingEvents;
+import fathertoast.coopmod.common.compat.jade.CMJadePlugin;
 import fathertoast.coopmod.common.config.ColorIntValueCodec;
 import fathertoast.crust.api.config.common.AbstractConfigCategory;
 import fathertoast.crust.api.config.common.AbstractConfigFile;
@@ -19,9 +20,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ForgeRegistries;
-
-import static fathertoast.coopmod.client.event.KeyBindingEvents.Mode.*;
-import static fathertoast.coopmod.client.event.KeyBindingEvents.Mode.TAP;
 
 public class ClientPreferences extends AbstractConfigFile {
     
@@ -48,6 +46,8 @@ public class ClientPreferences extends AbstractConfigFile {
         
         public final EnumField<KeyBindingEvents.Mode> keyMode;
         
+        public final EnumField<CMJadePlugin.Mode> jadeMode;
+        
         Inspection( ClientPreferences parent ) {
             super( parent, "inspect",
                     "Options to customize the 'inspect' and 'ping' functions." );
@@ -61,9 +61,22 @@ public class ClientPreferences extends AbstractConfigFile {
             
             SPEC.newLine();
             
-            keyMode = SPEC.define( new EnumField<>( "key_mode", HOLD, KeyBindingEvents.MODES_NO_TAP,
+            keyMode = SPEC.define( new EnumField<>( "key_mode",
+                    KeyBindingEvents.Mode.HOLD, KeyBindingEvents.MODES_NO_TAP,
                     "How the inspect key bind behaves. The key itself is bound in the game's options " +
                             "(Options > Controls > Key Binds)." ) );
+            
+            SPEC.newLine();
+            
+            jadeMode = SPEC.define( new EnumField<>( "jade_integration", CMJadePlugin.Mode.OVERRIDE,
+                    "Setting for the 'inspect' feature's Jade integration.",
+                    " * " + TomlHelper.toLiteral( CMJadePlugin.Mode.OFF ) + " - Disables Jade integration.",
+                    " * " + TomlHelper.toLiteral( CMJadePlugin.Mode.BACKUP ) + " - Jade's tooltip will be the " +
+                            "inspect target only when Jade does not already have a tooltip to display.",
+                    " * " + TomlHelper.toLiteral( CMJadePlugin.Mode.OVERRIDE ) + " - While inspect is active, " +
+                            "Jade's tooltip will always be the inspect target.",
+                    " * " + TomlHelper.toLiteral( CMJadePlugin.Mode.REPLACE ) + " - Forces Jade's tooltip to " +
+                            "always be the inspect target (this disables the tooltip while not inspecting)." ) );
         }
     }
     
@@ -87,13 +100,13 @@ public class ClientPreferences extends AbstractConfigFile {
             
             SPEC.newLine();
             
-            keyMode = SPEC.define( new EnumField<>( "key_mode", TAP,
+            keyMode = SPEC.define( new EnumField<>( "key_mode", KeyBindingEvents.Mode.TAP,
                     "How the find players key bind behaves. The key itself is bound in the game's options " +
                             "(Options > Controls > Key Binds)." ) );
             tapDuration = SPEC.define( new IntField( "tap_duration",
                     100, IntField.Range.NON_NEGATIVE,
-                    "If the key mode is set to \"" + TomlHelper.toLiteral( TAP ) +
-                            "\", this is the time, in ticks, that player finding will be on for when the keybind is " +
+                    "If the key mode is set to " + TomlHelper.toLiteral( KeyBindingEvents.Mode.TAP ) +
+                            ", this is the time, in ticks, that player finding will be on for when the keybind is " +
                             "pressed. (20 ticks = 1 second)." ) );
         }
     }
