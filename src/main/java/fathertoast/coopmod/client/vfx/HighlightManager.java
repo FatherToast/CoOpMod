@@ -19,7 +19,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
@@ -29,7 +31,11 @@ import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ItemSupplier;
+import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.SnowballItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.InfestedBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -234,7 +240,14 @@ public final class HighlightManager {
             Entity entity = level.getEntity( ping.getKey() );
             if( entity != null && (renderedPlayers == null || !renderedPlayers.contains( entity.getId() )) ) {
                 Vec3 pos = entity.getPosition( partialTick );
-                renderNameplate( client, entity.getDisplayName(), poseStack, bufferSource,
+                
+                // Item projectiles' item stack usually provides
+                // better info about the projectile itself.
+                Component name = entity instanceof ThrowableItemProjectile projectile
+                        ? projectile.getItem().getHoverName()
+                        : entity.getDisplayName();
+                
+                renderNameplate( client, name, poseStack, bufferSource,
                         camera, pos.x, pos.y + entity.getNameTagOffsetY(), pos.z );
             }
         }
@@ -245,9 +258,8 @@ public final class HighlightManager {
             BlockState block = level.getBlockState( pos );
             Vec3 offset = getNameplateOffset( level, pos, block );
             if( offset != null ) {
-                //noinspection deprecation
-                ItemStack stack = block.getBlock().getCloneItemStack( level, pos, block );
-                renderNameplate( client, stack.getHoverName(), poseStack, bufferSource,
+                Component name = Component.translatable( I18n.get( block.getBlock().getDescriptionId() ) );
+                renderNameplate( client, name, poseStack, bufferSource,
                         camera, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z );
             }
         }
@@ -300,6 +312,7 @@ public final class HighlightManager {
         
         Matrix4f pose = poseStack.last().pose();
         float offset = -client.font.width( text ) >> 1;
+        
         client.font.drawInBatch( text, offset, -5.0F, 0xFF_FFFFFF,
                 false, pose, bufferSource, Font.DisplayMode.SEE_THROUGH,
                 0, 0xF000F0 );
