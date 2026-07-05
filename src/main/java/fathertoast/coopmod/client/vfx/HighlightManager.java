@@ -245,7 +245,6 @@ public final class HighlightManager {
             BlockState block = level.getBlockState( pos );
             Vec3 offset = getNameplateOffset( level, pos, block );
             if( offset != null ) {
-                //noinspection deprecation
                 String key = I18n.get( block.getBlock().getDescriptionId() );
                 renderNameplate( client, Component.translatable( key ), poseStack, bufferSource,
                         camera, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z );
