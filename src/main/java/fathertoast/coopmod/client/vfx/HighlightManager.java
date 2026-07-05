@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
-import com.mojang.math.Axis;
 import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.client.coordination.FindPlayersManager;
 import fathertoast.coopmod.common.coordination.Ping;
@@ -19,7 +18,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.model.BakedModel;
@@ -31,11 +29,7 @@ import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ItemSupplier;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SnowballItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.InfestedBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -214,9 +208,10 @@ public final class HighlightManager {
                                          Matrix4f projectionMatrix, int renderTick, float partialTick, Camera camera, Frustum frustum ) {
         PingManager manager = PingManager.get( level );
         if( !manager.areAnyPingsActive() ) return;
-        poseStack.setIdentity();
-        poseStack.mulPose( Axis.XP.rotationDegrees( camera.getXRot() ) );
-        poseStack.mulPose( Axis.YP.rotationDegrees( camera.getYRot() + 180.0F ) );
+        // In case we swap back to rendering AFTER_LEVEL
+        //        poseStack.setIdentity();
+        //        poseStack.mulPose( Axis.XP.rotationDegrees( camera.getXRot() ) );
+        //        poseStack.mulPose( Axis.YP.rotationDegrees( camera.getYRot() + 180.0F ) );
         MultiBufferSource.BufferSource bufferSource = client.renderBuffers().bufferSource();
         
         // Render player nameplates
@@ -263,6 +258,9 @@ public final class HighlightManager {
                         camera, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z );
             }
         }
+        
+        // In case we swap back to rendering AFTER_LEVEL
+        //        RenderSystem.applyModelViewMatrix();
     }
     
     /** @return The nameplate position offset to apply for the block, or null if no nameplate should be rendered. */

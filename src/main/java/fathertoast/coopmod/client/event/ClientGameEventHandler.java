@@ -54,7 +54,7 @@ public final class ClientGameEventHandler {
             HighlightManager.renderBlockOutlines( client, client.level, event.getLevelRenderer(), event.getPoseStack(),
                     event.getProjectionMatrix(), event.getRenderTick(), event.getPartialTick(), event.getCamera(), event.getFrustum() );
         }
-        else if( event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL ) {
+        else if( event.getStage() == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES ) {
             Minecraft client = Minecraft.getInstance();
             if( client.level == null ) return;
             

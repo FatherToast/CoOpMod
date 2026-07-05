@@ -23,6 +23,7 @@ import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.ChunkDataEvent;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -60,6 +61,17 @@ public final class GameEventHandler {
             manager.getBlockPings().removeIf( ( ping ) ->
                     ping.getValue().isExpired( gameTime ) || ping.getValue().isRemoved( event.level, ping.getKey() ) );
         }
+    }
+    
+    /**
+     * Called immediately before shutting down, on the dedicated server, and before returning
+     * to the main menu on the client.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onServerStopped( ServerStoppedEvent event ) {
+        PingManager.reset();
     }
     
     /**
