@@ -9,5 +9,7 @@
   "sound_event.coopmod.subtitle.ping_bink": "A player pings",
   "sound_event.coopmod.subtitle.ping_bink_loud": "A player pings loudly",
   "sound_event.coopmod.subtitle.ping_hostile": "A player pings an enemy",
-  "sound_event.coopmod.subtitle.ping_boss": "A player pings a boss!"
+  "sound_event.coopmod.subtitle.ping_hostile_loud": "A player pings an enemy loudly",
+  "sound_event.coopmod.subtitle.ping_boss": "A player pings a boss!",
+  "sound_event.coopmod.subtitle.ping_boss_loud": "A player pings a boss loudly!"
 }

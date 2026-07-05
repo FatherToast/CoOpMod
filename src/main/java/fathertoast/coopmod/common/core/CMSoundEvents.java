@@ -18,7 +18,9 @@ public final class CMSoundEvents {
         register( CoOpModObjects.SoundEvents.PING_BINK );
         register( CoOpModObjects.SoundEvents.PING_BINK_LOUD );
         register( CoOpModObjects.SoundEvents.PING_HOSTILE );
+        register( CoOpModObjects.SoundEvents.PING_HOSTILE_LOUD );
         register( CoOpModObjects.SoundEvents.PING_BOSS );
+        register( CoOpModObjects.SoundEvents.PING_BOSS_LOUD );
     }
     
     /** Called to register this class. */
@@ -31,5 +33,5 @@ public final class CMSoundEvents {
     }
     
     
-    private CMSoundEvents() {}
+    private CMSoundEvents() { }
 }

@@ -17,10 +17,22 @@
       "coopmod:ping_hostile"
     ]
   },
+  "ping.hostile_loud": {
+    "subtitle": "sound_event.coopmod.subtitle.ping_hostile_loud",
+    "sounds": [
+      "coopmod:ping_hostile_loud"
+    ]
+  },
   "ping.boss": {
     "subtitle": "sound_event.coopmod.subtitle.ping_boss",
     "sounds": [
       "coopmod:ping_boss"
+    ]
+  },
+  "ping.boss_loud": {
+    "subtitle": "sound_event.coopmod.subtitle.ping_boss_loud",
+    "sounds": [
+      "coopmod:ping_boss_loud"
     ]
   }
 }

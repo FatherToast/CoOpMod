@@ -1,10 +1,11 @@
 package fathertoast.coopmod.client.config;
 
+import fathertoast.coopmod.api.common.util.CoOpModObjects;
 import fathertoast.coopmod.client.coordination.FindPlayersManager;
 import fathertoast.coopmod.client.coordination.InspectManager;
 import fathertoast.coopmod.client.event.KeyBindingEvents;
 import fathertoast.coopmod.common.compat.jade.CMJadePlugin;
-import fathertoast.coopmod.common.config.ColorIntValueCodec;
+import fathertoast.coopmod.common.config.value.HighlightEffects;
 import fathertoast.crust.api.config.common.AbstractConfigCategory;
 import fathertoast.crust.api.config.common.AbstractConfigFile;
 import fathertoast.crust.api.config.common.ConfigManager;
@@ -15,17 +16,20 @@ import fathertoast.crust.api.config.common.file.TomlHelper;
 import fathertoast.crust.api.config.common.value.collection.BlockStateMap;
 import fathertoast.crust.api.config.common.value.collection.EntityMap;
 import fathertoast.crust.api.util.BlockStatePropertyMap;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.Nullable;
 
 public class ClientPreferences extends AbstractConfigFile {
     
     public final Inspection INSPECTION;
     public final PlayerFinder PLAYER_FINDER;
-    public final HighlightColors HIGHLIGHT_COLORS;
+    public final HighlightSettings HIGHLIGHT_SETTINGS;
     
     /** Builds the config spec that should be used for this config. */
     ClientPreferences( ConfigManager manager, String fileName ) {
@@ -34,7 +38,7 @@ public class ClientPreferences extends AbstractConfigFile {
         
         INSPECTION = new Inspection( this );
         PLAYER_FINDER = new PlayerFinder( this );
-        HIGHLIGHT_COLORS = new HighlightColors( this );
+        HIGHLIGHT_SETTINGS = new HighlightSettings( this );
         
         // Refresh the state of key bindings
         SPEC.callback( KeyBindingEvents::updateKeyMode );
@@ -120,23 +124,32 @@ public class ClientPreferences extends AbstractConfigFile {
     }
     
     @SuppressWarnings( "UnstableApiUsage" )
-    public static class HighlightColors extends AbstractConfigCategory<ClientPreferences> {
+    public static class HighlightSettings extends AbstractConfigCategory<ClientPreferences> {
         
         public final ColorIntField defaultColor;
+        // TODO - Replace with registry entry field after Crust update
+        public final StringField defaultSound;
         
         public final BooleanField playerColors;
         
-        public final EntityMapField<Integer> entityColors;
+        public final EntityMapField<HighlightEffects> entityEffects;
         
-        public final BlockStateMapField<Integer> blockColors;
+        public final BlockStateMapField<HighlightEffects> blockEffects;
         
-        HighlightColors( ClientPreferences parent ) {
-            super( parent, "highlight_colors",
-                    "Options to customize the colors for ping and inspect highlights (their visual outlines)." );
+        HighlightSettings( ClientPreferences parent ) {
+            super( parent, "highlight_settings",
+                    "Options to customize the colors for ping and inspect highlights (their visual outlines), as well " +
+                            " as ping sound effects." );
             
-            defaultColor = SPEC.define( new ColorIntField( "global_default", 0xFFFF00, false,
+            defaultColor = SPEC.define( new ColorIntField( "global_default.color", 0xFFFF00, false,
                     "The color used for all highlights not specified in the following fields. Note that " +
                             "when the settings below are all at their default values, this color will never be used." ) );
+            
+            defaultSound = SPEC.define( new StringField( "global_default.sound", CoOpModObjects.SoundEvents.PING_BINK.getId().toString(),
+                    ( value ) -> ResourceLocation.isValidResourceLocation( value )
+                            && ForgeRegistries.SOUND_EVENTS.containsKey( ResourceLocation.parse( value ) ),
+                    "The sound event used for all ping types not specified in the following fields. Note that " +
+                            "when the settings below are all at their default values, this sound event will never be used." ) );
             
             SPEC.newLine();//TODO add in some auto-coloring options for players, personal colors, and team colors (note team colors currently override all settings)
             
@@ -146,43 +159,86 @@ public class ClientPreferences extends AbstractConfigFile {
             
             SPEC.newLine();
             
-            var builder = new EntityMap.Builder<>( ColorIntValueCodec.NO_ALPHA );
+            var builder = new EntityMap.Builder<>( HighlightEffects.CODEC );
             for( EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES.getValues() ) {
                 if( entityType == EntityType.PLAYER ) {
                     // Special color for players
-                    builder.put( entityType, 0x00FFFF );
+                    builder.put( entityType, new HighlightEffects( 0x00FFFF, CoOpModObjects.SoundEvents.PING_BINK ) );
+                    continue;
+                }
+                // TODO Maybe determine bosses some other way
+                else if( entityType == EntityType.ENDER_DRAGON || entityType == EntityType.WITHER
+                        || entityType == EntityType.WARDEN || entityType == EntityType.ELDER_GUARDIAN ) {
+                    // Special sound for bosses
+                    builder.put( entityType, new HighlightEffects( 0xFF0000, CoOpModObjects.SoundEvents.PING_BOSS_LOUD ) );
                     continue;
                 }
                 switch( entityType.getCategory() ) { // TODO update to use extends super in higher Crust ver, maybe also add auto-color options
-                    case MONSTER -> {} // Skip so they get the default color
-                    case MISC -> builder.put( entityType, 0xFFFF00 );
-                    default -> builder.put( entityType, 0x00FF00 );
+                    case MONSTER ->
+                            builder.put( entityType, new HighlightEffects( 0xFF0000, CoOpModObjects.SoundEvents.PING_HOSTILE_LOUD ) );
+                    case MISC ->
+                            builder.put( entityType, new HighlightEffects( 0xFFFF00, CoOpModObjects.SoundEvents.PING_BINK ) );
+                    default ->
+                            builder.put( entityType, new HighlightEffects( 0x00FF00, CoOpModObjects.SoundEvents.PING_BINK ) );
                 }
             }
-            entityColors = SPEC.define( new EntityMapField<>( "entities",
-                    builder.buildWithDefault( 0xFF0000 ),
-                    "The colors used for entity highlights. If no default color is specified in this " +
-                            "list, the global default color above applies." ) );
+            entityEffects = SPEC.define( new EntityMapField<>( "entities",
+                    builder.buildWithDefault( new HighlightEffects( 0xFF0000, CoOpModObjects.SoundEvents.PING_BINK ) ),
+                    "The colors and ping sounds used for entity highlights. If no values are specified in this " +
+                            "list, the global default color and value above applies." ) );
             
             SPEC.newLine();
             
-            blockColors = SPEC.define( new BlockStateMapField<>( "blocks",
-                    new BlockStateMap.Builder<>( ColorIntValueCodec.NO_ALPHA )
-                            .put( Blocks.FIRE, BlockStatePropertyMap.EMPTY, 0xFF0000 )
-                            .put( Blocks.SCULK_SHRIEKER, BlockStatePropertyMap.EMPTY, 0xFF0000 )
-                            .buildWithDefault( 0x00FFFF ),
-                    "The colors used for block highlights. If no default color is specified in this " +
-                            "list, the global default color above applies." ) );
+            blockEffects = SPEC.define( new BlockStateMapField<>( "blocks",
+                    new BlockStateMap.Builder<>( HighlightEffects.CODEC )
+                            .put( Blocks.FIRE, BlockStatePropertyMap.EMPTY, new HighlightEffects( 0xFF0000, CoOpModObjects.SoundEvents.PING_BINK ) )
+                            .put( Blocks.SOUL_FIRE, BlockStatePropertyMap.EMPTY, new HighlightEffects( 0xFF0000, CoOpModObjects.SoundEvents.PING_BINK ) )
+                            .put( Blocks.SCULK_SHRIEKER, BlockStatePropertyMap.EMPTY, new HighlightEffects( 0xFF0000, CoOpModObjects.SoundEvents.PING_BINK ) )
+                            .buildWithDefault( new HighlightEffects( 0x00FFFF, CoOpModObjects.SoundEvents.PING_BINK ) ),
+                    "The colors and ping sounds used for block highlights. If no values are specified in this " +
+                            "list, the global default color and sound above applies." ) );
         }
         
         public int getColor( Entity entity ) {
-            return ClientConfig.PREFS.HIGHLIGHT_COLORS.entityColors.getOrElse( entity,
-                    ClientConfig.PREFS.HIGHLIGHT_COLORS.defaultColor.get() );
+            if( ClientConfig.PREFS.HIGHLIGHT_SETTINGS.entityEffects.contains( entity ) )
+                // noinspection ConstantConditions
+                return ClientConfig.PREFS.HIGHLIGHT_SETTINGS.entityEffects.get( entity ).color.get();
+            else {
+                return ClientConfig.PREFS.HIGHLIGHT_SETTINGS.defaultColor.get();
+            }
         }
         
         public int getColor( BlockState blockState ) {
-            return ClientConfig.PREFS.HIGHLIGHT_COLORS.blockColors.getOrElse( blockState,
-                    ClientConfig.PREFS.HIGHLIGHT_COLORS.defaultColor.get() );
+            if( ClientConfig.PREFS.HIGHLIGHT_SETTINGS.blockEffects.contains( blockState ) )
+                // noinspection ConstantConditions
+                return ClientConfig.PREFS.HIGHLIGHT_SETTINGS.blockEffects.get( blockState ).color.get();
+            else {
+                return ClientConfig.PREFS.HIGHLIGHT_SETTINGS.defaultColor.get();
+            }
+        }
+        
+        @Nullable
+        public SoundEvent getSound( Entity entity ) {
+            String soundId;
+            if( ClientConfig.PREFS.HIGHLIGHT_SETTINGS.entityEffects.contains( entity ) )
+                // noinspection ConstantConditions
+                soundId = ClientConfig.PREFS.HIGHLIGHT_SETTINGS.entityEffects.get( entity ).pingSoundId.get();
+            else {
+                soundId = ClientConfig.PREFS.HIGHLIGHT_SETTINGS.defaultSound.get();
+            }
+            return ForgeRegistries.SOUND_EVENTS.getValue( ResourceLocation.parse( soundId ) );
+        }
+        
+        @Nullable
+        public SoundEvent getSound( BlockState blockState ) {
+            String soundId;
+            if( ClientConfig.PREFS.HIGHLIGHT_SETTINGS.blockEffects.contains( blockState ) )
+                // noinspection ConstantConditions
+                soundId = ClientConfig.PREFS.HIGHLIGHT_SETTINGS.blockEffects.get( blockState ).pingSoundId.get();
+            else {
+                soundId = ClientConfig.PREFS.HIGHLIGHT_SETTINGS.defaultSound.get();
+            }
+            return ForgeRegistries.SOUND_EVENTS.getValue( ResourceLocation.parse( soundId ) );
         }
     }
 }

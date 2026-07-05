@@ -83,25 +83,25 @@ public final class HighlightManager {
     
     /** @return The RGB highlight color the entity should have. */
     public static int getHighlightColor( Entity entity ) {
-        if( ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ) {
+        if( ClientConfig.PREFS.HIGHLIGHT_SETTINGS.playerColors.get() ) {
             Ping.EntityData ping = PingManager.getPingData( entity );
             if( ping != null && ping.color >= 0 ) return ping.color;
         }
-        return ClientConfig.PREFS.HIGHLIGHT_COLORS.getColor( entity );
+        return ClientConfig.PREFS.HIGHLIGHT_SETTINGS.getColor( entity );
     }
     
     /** @return The RGB highlight color the block position should have. */
     public static int getHighlightColor( BlockPos pos ) {
         ClientLevel level = Minecraft.getInstance().level;
-        if( level == null ) return ClientConfig.PREFS.HIGHLIGHT_COLORS.defaultColor.get();
+        if( level == null ) return ClientConfig.PREFS.HIGHLIGHT_SETTINGS.defaultColor.get();
         
         BlockState block = level.getBlockState( pos );
-        if( ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ) {
+        if( ClientConfig.PREFS.HIGHLIGHT_SETTINGS.playerColors.get() ) {
             int color = getInspectBlocks().containsKey( pos ) ? getInspectBlocks().get( pos ).color :
                     PingManager.get( level ).getColor( pos );
             if( color > 0 ) return color;
         }
-        return ClientConfig.PREFS.HIGHLIGHT_COLORS.getColor( block );
+        return ClientConfig.PREFS.HIGHLIGHT_SETTINGS.getColor( block );
     }
     
     /** @return An appropriate outline buffer source to provide to the block entity's renderer to highlight it. */
@@ -151,13 +151,13 @@ public final class HighlightManager {
         OutlineBufferSource bufferSource = client.renderBuffers().outlineBufferSource();
         for( Map.Entry<BlockPos, Ping.BlockData> ping : PingManager.get( level ).getBlockPings() ) {
             renderBlockHighlight( client, level, bufferSource, poseStack, cameraPos, ping.getKey(),
-                    ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ? ping.getValue().color : -1 );
+                    ClientConfig.PREFS.HIGHLIGHT_SETTINGS.playerColors.get() ? ping.getValue().color : -1 );
             getInspectBlocks().remove( ping.getKey() );
         }
         if( !getInspectBlocks().isEmpty() ) {
             for( Map.Entry<BlockPos, Ping.BlockData> ping : getInspectBlocks().entrySet() ) {
                 renderBlockHighlight( client, level, bufferSource, poseStack, cameraPos, ping.getKey(),
-                        ClientConfig.PREFS.HIGHLIGHT_COLORS.playerColors.get() ? ping.getValue().color : -1 );
+                        ClientConfig.PREFS.HIGHLIGHT_SETTINGS.playerColors.get() ? ping.getValue().color : -1 );
             }
         }
     }
@@ -171,7 +171,7 @@ public final class HighlightManager {
         }
         
         if( block.getRenderShape() == RenderShape.MODEL ) {
-            if( color < 0 ) color = ClientConfig.PREFS.HIGHLIGHT_COLORS.getColor( block );
+            if( color < 0 ) color = ClientConfig.PREFS.HIGHLIGHT_SETTINGS.getColor( block );
             bufferSource.setColor( CrustMath.getRedBits( color ), CrustMath.getGreenBits( color ),
                     CrustMath.getBlueBits( color ), 0xFF ); // Alpha does not function for outlines
             
@@ -321,5 +321,5 @@ public final class HighlightManager {
     }
     
     
-    private HighlightManager() {}
+    private HighlightManager() { }
 }

@@ -1,12 +1,12 @@
 package fathertoast.coopmod.client.coordination;
 
-import fathertoast.coopmod.api.common.util.CoOpModObjects;
 import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.common.coordination.PingManager;
 import fathertoast.coopmod.common.network.message.ClientboundBlockPingPacket;
 import fathertoast.coopmod.common.network.message.ClientboundEntityPingPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -98,10 +98,11 @@ public final class ClientPingHelper {
     
     /** Plays the appropriate ping sound for the entity. */
     private static void playSound( Entity entity ) {
-        //TODO get sound event via entity list
+        SoundEvent sound = ClientConfig.PREFS.HIGHLIGHT_SETTINGS.getSound( entity );
+        if( sound == null ) return;
+        // noinspection resource
         entity.level().playLocalSound( entity.getX(), entity.getY( 0.5 ), entity.getZ(),
-                CoOpModObjects.SoundEvents.PING_BINK.get(), SoundSource.PLAYERS,
-                randomVolume( entity.level() ), randomPitch( entity.level() ), false );
+                sound, SoundSource.PLAYERS, randomVolume( entity.level() ), randomPitch( entity.level() ), false );
     }
     
     /** Plays the appropriate ping sound for the block position. */
@@ -109,17 +110,18 @@ public final class ClientPingHelper {
         Level level = Minecraft.getInstance().level;
         if( level != null && level.isLoaded( pos ) ) {
             BlockState block = level.getBlockState( pos );
-            //TODO get sound event via block state list
-            level.playLocalSound( pos,
-                    CoOpModObjects.SoundEvents.PING_BINK.get(), SoundSource.PLAYERS,
+            SoundEvent sound = ClientConfig.PREFS.HIGHLIGHT_SETTINGS.getSound( block );
+            if( sound == null ) return;
+            
+            level.playLocalSound( pos, sound, SoundSource.PLAYERS,
                     randomVolume( level ), randomPitch( level ), false );
         }
     }
     
-    private static float randomVolume( Level level ) { return 0.15F + level.random.nextFloat() * 0.05F; }
+    private static float randomVolume( Level level ) { return 0.4F + level.random.nextFloat() * 0.05F; }
     
-    private static float randomPitch( Level level ) { return 0.8F + level.random.nextFloat() * 0.2F; }
+    private static float randomPitch( Level level ) { return 0.9F + level.random.nextFloat() * 0.2F; }
     
     
-    private ClientPingHelper() {}
+    private ClientPingHelper() { }
 }

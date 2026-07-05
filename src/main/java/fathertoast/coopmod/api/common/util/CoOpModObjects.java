@@ -1,8 +1,6 @@
 package fathertoast.coopmod.api.common.util;
 
-import com.mojang.brigadier.arguments.ArgumentType;
 import fathertoast.coopmod.common.core.CoOpMod;
-import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +19,9 @@ public final class CoOpModObjects {
         RegistryObject<SoundEvent> PING_BINK = sound( "ping.bink" );
         RegistryObject<SoundEvent> PING_BINK_LOUD = sound( "ping.bink_loud" );
         RegistryObject<SoundEvent> PING_HOSTILE = sound( "ping.hostile" );
+        RegistryObject<SoundEvent> PING_HOSTILE_LOUD = sound( "ping.hostile_loud" );
         RegistryObject<SoundEvent> PING_BOSS = sound( "ping.boss" );
+        RegistryObject<SoundEvent> PING_BOSS_LOUD = sound( "ping.boss_loud" );
     }
     
     // No command args yet
@@ -55,5 +55,5 @@ public final class CoOpModObjects {
     }
     
     
-    private CoOpModObjects() {}
+    private CoOpModObjects() { }
 }
