@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
@@ -30,6 +31,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.InfestedBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -244,8 +246,8 @@ public final class HighlightManager {
             Vec3 offset = getNameplateOffset( level, pos, block );
             if( offset != null ) {
                 //noinspection deprecation
-                ItemStack stack = block.getBlock().getCloneItemStack( level, pos, block );
-                renderNameplate( client, stack.getHoverName(), poseStack, bufferSource,
+                String key = I18n.get( block.getBlock().getDescriptionId() );
+                renderNameplate( client, Component.translatable( key ), poseStack, bufferSource,
                         camera, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z );
             }
         }
@@ -297,6 +299,7 @@ public final class HighlightManager {
         
         Matrix4f pose = poseStack.last().pose();
         float offset = -client.font.width( text ) >> 1;
+        
         client.font.drawInBatch( text, offset, -5.0F, 0xFF_FFFFFF,
                 false, pose, bufferSource, Font.DisplayMode.SEE_THROUGH,
                 0, 0xF000F0 );
