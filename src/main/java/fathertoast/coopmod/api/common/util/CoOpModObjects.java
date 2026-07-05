@@ -20,6 +20,8 @@ public final class CoOpModObjects {
     public interface SoundEvents {
         RegistryObject<SoundEvent> PING_BINK = sound( "ping.bink" );
         RegistryObject<SoundEvent> PING_BINK_LOUD = sound( "ping.bink_loud" );
+        RegistryObject<SoundEvent> PING_HOSTILE = sound( "ping.hostile" );
+        RegistryObject<SoundEvent> PING_BOSS = sound( "ping.boss" );
     }
     
     // No command args yet

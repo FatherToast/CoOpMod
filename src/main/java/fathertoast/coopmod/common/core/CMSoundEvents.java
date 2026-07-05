@@ -17,6 +17,8 @@ public final class CMSoundEvents {
     static {
         register( CoOpModObjects.SoundEvents.PING_BINK );
         register( CoOpModObjects.SoundEvents.PING_BINK_LOUD );
+        register( CoOpModObjects.SoundEvents.PING_HOSTILE );
+        register( CoOpModObjects.SoundEvents.PING_BOSS );
     }
     
     /** Called to register this class. */

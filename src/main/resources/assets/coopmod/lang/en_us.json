@@ -6,6 +6,8 @@
   "key.coopmod.quick_ping": "Quick Ping",
   "key.coopmod.find_players": "Find Players",
 
-  "sound_event.coopmod.subtitle.ping_bink": "Ping binks",
-  "sound_event.coopmod.subtitle.ping_bink_loud": "Ping binks loudly"
+  "sound_event.coopmod.subtitle.ping_bink": "A player pings",
+  "sound_event.coopmod.subtitle.ping_bink_loud": "A player pings loudly",
+  "sound_event.coopmod.subtitle.ping_hostile": "A player pings an enemy",
+  "sound_event.coopmod.subtitle.ping_boss": "A player pings a boss!"
 }
