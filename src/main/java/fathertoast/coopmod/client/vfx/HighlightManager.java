@@ -207,7 +207,7 @@ public final class HighlightManager {
     public static void renderNameplates( Minecraft client, ClientLevel level, LevelRenderer levelRenderer, PoseStack poseStack,
                                          Matrix4f projectionMatrix, int renderTick, float partialTick, Camera camera, Frustum frustum ) {
         PingManager manager = PingManager.get( level );
-        if( !manager.areAnyPingsActive() ) return;
+        if( !FindPlayersManager.isEnabled() && !manager.areAnyPingsActive() ) return;
         // In case we swap back to rendering AFTER_LEVEL
         //        poseStack.setIdentity();
         //        poseStack.mulPose( Axis.XP.rotationDegrees( camera.getXRot() ) );
