@@ -214,6 +214,8 @@ public final class HighlightManager {
         //        poseStack.mulPose( Axis.YP.rotationDegrees( camera.getYRot() + 180.0F ) );
         MultiBufferSource.BufferSource bufferSource = client.renderBuffers().bufferSource();
         
+        //TODO Perhaps combine entity stacks into one combined nameplate, similar to how multi-block pings work
+        
         // Render player nameplates
         //TODO Maybe someday do something with PlayerFaceRenderer?
         Set<Integer> renderedPlayers;
