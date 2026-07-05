@@ -26,14 +26,12 @@ public final class ClientWork {
     
     @OnClient
     public static void handlePing( ClientboundEntityPingPacket message ) {
-        PingManager manager = ClientPingHelper.pingManager();
-        if( manager != null ) manager.receivePing( message );
+        ClientPingHelper.receivePing( message );
     }
     
     @OnClient
     public static void handlePing( ClientboundBlockPingPacket message ) {
-        PingManager manager = ClientPingHelper.pingManager();
-        if( manager != null ) manager.receivePing( message );
+        ClientPingHelper.receivePing( message );
     }
     
     

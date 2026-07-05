@@ -38,10 +38,10 @@ public final class FindPlayersManager {
         enabledDuration = 0;
     }
     
-    /** Turns on "find players" mode, which highlights nearby friendly players. */
-    public static void tapEnable() {
-        setEnabled( true );
-        enabledDuration = ClientConfig.PREFS.PLAYER_FINDER.tapDuration.get();
+    /** Flags "find players" mode to disable after the configured delay. */
+    public static void delayDisable() {
+        enabledDuration = ClientConfig.PREFS.PLAYER_FINDER.lingerDuration.get();
+        if( enabledDuration == 0 ) enabled = false;
     }
     
     /** @return Whether "find players" mode is on or off. */

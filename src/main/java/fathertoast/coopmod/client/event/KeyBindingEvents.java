@@ -17,14 +17,10 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
-import static fathertoast.coopmod.client.event.KeyBindingEvents.Mode.*;
-
 @Mod.EventBusSubscriber( value = Dist.CLIENT, modid = CoOpMod.MOD_ID )
 public final class KeyBindingEvents {
     
-    public enum Mode { HOLD, TAP, TOGGLE, ALWAYS_ON }
-    
-    public static final Mode[] MODES_NO_TAP = { HOLD, TOGGLE, ALWAYS_ON };
+    public enum Mode { HOLD, TOGGLE, ALWAYS_ON }
     
     
     private static final String KEY_CAT = "key.categories." + CoOpMod.MOD_ID;
@@ -44,11 +40,11 @@ public final class KeyBindingEvents {
     /** Updates the key bind state based on current settings. */
     public static void updateKeyMode() {
         switch( ClientConfig.PREFS.INSPECTION.keyMode.get() ) {
-            case HOLD, TAP -> InspectManager.disable();
+            case HOLD -> InspectManager.disable();
             case ALWAYS_ON -> InspectManager.enable();
         }
         switch( ClientConfig.PREFS.PLAYER_FINDER.keyMode.get() ) {
-            case HOLD, TAP -> FindPlayersManager.disable();
+            case HOLD -> FindPlayersManager.disable();
             case ALWAYS_ON -> FindPlayersManager.enable();
         }
     }
@@ -89,7 +85,7 @@ public final class KeyBindingEvents {
                 if( isActive( key, INSPECT ) ) {
                     switch( ClientConfig.PREFS.INSPECTION.keyMode.get() ) {
                         case HOLD -> InspectManager.enable();
-                        case TAP, TOGGLE -> InspectManager.setEnabled( !InspectManager.isEnabled() );
+                        case TOGGLE -> InspectManager.setEnabled( !InspectManager.isEnabled() );
                     }
                 }
                 else if( isActive( key, PING ) ) {
@@ -104,7 +100,6 @@ public final class KeyBindingEvents {
                 else if( isActive( key, FIND_PLAYERS ) ) {
                     switch( ClientConfig.PREFS.PLAYER_FINDER.keyMode.get() ) {
                         case HOLD -> FindPlayersManager.enable();
-                        case TAP -> FindPlayersManager.tapEnable();
                         case TOGGLE -> FindPlayersManager.setEnabled( !FindPlayersManager.isEnabled() );
                     }
                 }
@@ -115,7 +110,7 @@ public final class KeyBindingEvents {
                     if( ClientConfig.PREFS.INSPECTION.keyMode.get() == Mode.HOLD ) InspectManager.disable();
                 }
                 if( isActive( key, FIND_PLAYERS ) ) {
-                    if( ClientConfig.PREFS.PLAYER_FINDER.keyMode.get() == Mode.HOLD ) FindPlayersManager.disable();
+                    if( ClientConfig.PREFS.PLAYER_FINDER.keyMode.get() == Mode.HOLD ) FindPlayersManager.delayDisable();
                 }
             }
         }

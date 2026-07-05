@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
+import com.mojang.math.Axis;
 import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.client.coordination.FindPlayersManager;
 import fathertoast.coopmod.common.coordination.Ping;
@@ -11,6 +12,7 @@ import fathertoast.coopmod.common.coordination.PingManager;
 import fathertoast.crust.api.lib.CrustMath;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -21,22 +23,30 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.InfestedBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.RenderTypeHelper;
 import net.minecraftforge.client.model.data.ModelData;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
+import java.util.*;
 
 /**
  * Keeps track of what should be highlighted and renders highlights as needed.
@@ -47,11 +57,6 @@ public final class HighlightManager {
     private static final Map<Integer, Ping.EntityData> inspectEntities = new HashMap<>();
     /** The block positions we should highlight for the inspect feature. */
     private static final Map<BlockPos, Ping.BlockData> inspectBlocks = new HashMap<>();
-    
-    /** @return True if any blocks should be rendered with a glow effect. */
-    public static boolean areAnyBlocksHighlighted() {
-        return !getInspectBlocks().isEmpty() || PingManager.areAnyPingsActive( Minecraft.getInstance().level );
-    }
     
     /** The entities we should highlight for the inspect feature. */
     public static Map<Integer, Ping.EntityData> getInspectEntities() { return inspectEntities; }
@@ -69,6 +74,11 @@ public final class HighlightManager {
     public static boolean shouldHighlight( BlockPos pos ) {
         ClientLevel level = Minecraft.getInstance().level;
         return level != null && (getInspectBlocks().containsKey( pos ) || PingManager.isPinged( level, pos ));
+    }
+    
+    /** @return True if any blocks should be rendered with a glow effect. */
+    public static boolean areAnyBlocksHighlighted() {
+        return !getInspectBlocks().isEmpty() || PingManager.areAnyPingsActive( Minecraft.getInstance().level );
     }
     
     /** @return The RGB highlight color the entity should have. */
@@ -93,6 +103,43 @@ public final class HighlightManager {
         }
         return ClientConfig.PREFS.HIGHLIGHT_COLORS.getColor( block );
     }
+    
+    /** @return An appropriate outline buffer source to provide to the block entity's renderer to highlight it. */
+    public static MultiBufferSource getBlockEntityBufferSource( LevelRenderer levelRenderer, BlockEntity blockEntity,
+                                                                BlockPos blockPos, PoseStack poseStack ) {
+        // Set up the baseline outline buffer
+        Minecraft client = Minecraft.getInstance();
+        OutlineBufferSource outlineBuffer = client.renderBuffers().outlineBufferSource();
+        int color = HighlightManager.getHighlightColor( blockPos );
+        outlineBuffer.setColor( CrustMath.getRedBits( color ), CrustMath.getGreenBits( color ),
+                CrustMath.getBlueBits( color ), 0xFF ); // Alpha does not function for outlines
+        
+        // Global block entities have no pre-processing
+        if( levelRenderer.globalBlockEntities.contains( blockEntity ) ) return outlineBuffer;
+        // Standard block entities
+        // We check if block break progress needs to be slapped onto the buffer source; would be lovely if we can
+        // figure out a smarter way to avoid re-making the wheel here and instead wrap the originally provided buffer smartly
+        SortedSet<BlockDestructionProgress> destroyProgressSet = levelRenderer.destructionProgress.get( blockPos.asLong() );
+        if( destroyProgressSet != null && !destroyProgressSet.isEmpty() ) {
+            int destroyProgress = destroyProgressSet.last().getProgress();
+            if( destroyProgress >= 0 ) {
+                PoseStack.Pose lastPoseStack = poseStack.last();
+                VertexConsumer crumblingVertexConsumer = new SheetedDecalTextureGenerator( client.renderBuffers()
+                        .crumblingBufferSource().getBuffer( ModelBakery.DESTROY_TYPES.get( destroyProgress ) ),
+                        lastPoseStack.pose(), lastPoseStack.normal(), 1.0F );
+                return ( renderType ) -> {
+                    VertexConsumer vertexConsumer = outlineBuffer.getBuffer( renderType );
+                    return renderType.affectsCrumbling() ?
+                            VertexMultiConsumer.create( crumblingVertexConsumer, vertexConsumer ) : vertexConsumer;
+                };
+            }
+        }
+        // No block destroy progress needed
+        return outlineBuffer;
+    }
+    
+    
+    // ---- Render Block Highlights ---- //
     
     /** Called every render frame. Renders all block highlights. */
     public static void renderBlockOutlines( Minecraft client, ClientLevel level, LevelRenderer levelRenderer, PoseStack poseStack,
@@ -129,8 +176,11 @@ public final class HighlightManager {
                     CrustMath.getBlueBits( color ), 0xFF ); // Alpha does not function for outlines
             
             poseStack.pushPose();
-            poseStack.translate( pos.getX() - cameraPos.x, pos.getY() - cameraPos.y, pos.getZ() - cameraPos.z );
-            
+            poseStack.translate(
+                    offset( pos.getX() - cameraPos.x ),
+                    offset( pos.getY() - cameraPos.y ),
+                    offset( pos.getZ() - cameraPos.z )
+            );
             BakedModel model = client.getBlockRenderer().getBlockModel( block );
             for( RenderType renderType : model.getRenderTypes( block, RandomSource.create( block.getSeed( pos ) ), ModelData.EMPTY ) ) {
                 renderType = RenderTypeHelper.getMovingBlockRenderType( renderType );
@@ -143,38 +193,115 @@ public final class HighlightManager {
         }
     }
     
-    /** @return An appropriate outline buffer source to provide to the block entity's renderer to highlight it. */
-    public static MultiBufferSource getBlockEntityBufferSource( LevelRenderer levelRenderer, BlockEntity blockEntity,
-                                                                BlockPos blockPos, PoseStack poseStack ) {
-        // Set up the baseline outline buffer
-        Minecraft client = Minecraft.getInstance();
-        OutlineBufferSource outlineBuffer = client.renderBuffers().outlineBufferSource();
-        int color = HighlightManager.getHighlightColor( blockPos );
-        outlineBuffer.setColor( CrustMath.getRedBits( color ), CrustMath.getGreenBits( color ),
-                CrustMath.getBlueBits( color ), 0xFF ); // Alpha does not function for outlines
+    /**
+     * @return An offset to resolve z-fighting. Should cause the model we render for the outline to always be hidden.
+     * Because I really just don't understand how block rendering works well enough to solve it the right way.
+     */
+    private static double offset( double off ) { return off + (off > -0.5 ? 0.001 : -0.001); }
+    
+    
+    // ---- Render Ping Nameplates ---- //
+    
+    /** Called every render frame. Renders all pinged entity and block nameplates. */
+    public static void renderNameplates( Minecraft client, ClientLevel level, LevelRenderer levelRenderer, PoseStack poseStack,
+                                         Matrix4f projectionMatrix, int renderTick, float partialTick, Camera camera, Frustum frustum ) {
+        PingManager manager = PingManager.get( level );
+        if( !manager.areAnyPingsActive() ) return;
+        poseStack.setIdentity();
+        poseStack.mulPose( Axis.XP.rotationDegrees( camera.getXRot() ) );
+        poseStack.mulPose( Axis.YP.rotationDegrees( camera.getYRot() + 180.0F ) );
+        MultiBufferSource.BufferSource bufferSource = client.renderBuffers().bufferSource();
         
-        // Global block entities have no pre-processing
-        if( levelRenderer.globalBlockEntities.contains( blockEntity ) ) return outlineBuffer;
-        // Standard block entities
-        // We check if block break progress needs to be slapped onto the buffer source; would be lovely if we can
-        // figure out a smarter way to avoid re-making the wheel here and instead wrap the originally provided buffer smartly
-        SortedSet<BlockDestructionProgress> destroyProgressSet = levelRenderer.destructionProgress.get( blockPos.asLong() );
-        if( destroyProgressSet != null && !destroyProgressSet.isEmpty() ) {
-            int destroyProgress = destroyProgressSet.last().getProgress();
-            if( destroyProgress >= 0 ) {
-                PoseStack.Pose lastPoseStack = poseStack.last();
-                VertexConsumer crumblingVertexConsumer = new SheetedDecalTextureGenerator( client.renderBuffers()
-                        .crumblingBufferSource().getBuffer( ModelBakery.DESTROY_TYPES.get( destroyProgress ) ),
-                        lastPoseStack.pose(), lastPoseStack.normal(), 1.0F );
-                return ( renderType ) -> {
-                    VertexConsumer vertexConsumer = outlineBuffer.getBuffer( renderType );
-                    return renderType.affectsCrumbling() ?
-                            VertexMultiConsumer.create( crumblingVertexConsumer, vertexConsumer ) : vertexConsumer;
-                };
+        // Render player nameplates
+        Set<Integer> renderedPlayers;
+        if( FindPlayersManager.isEnabled() ) {
+            renderedPlayers = new HashSet<>();
+            for( Player player : level.players() ) {
+                if( FindPlayersManager.shouldHighlight( player ) ) {
+                    Vec3 pos = player.getPosition( partialTick );
+                    renderNameplate( client, player.getDisplayName(), poseStack, bufferSource,
+                            camera, pos.x, pos.y + player.getNameTagOffsetY(), pos.z );
+                    renderedPlayers.add( player.getId() );
+                }
             }
         }
-        // No block destroy progress needed
-        return outlineBuffer;
+        else renderedPlayers = null;
+        
+        // Render entity nameplates
+        for( Map.Entry<Integer, Ping.EntityData> ping : manager.getEntityPings() ) {
+            Entity entity = level.getEntity( ping.getKey() );
+            if( entity != null && (renderedPlayers == null || !renderedPlayers.contains( entity.getId() )) ) {
+                Vec3 pos = entity.getPosition( partialTick );
+                renderNameplate( client, entity.getDisplayName(), poseStack, bufferSource,
+                        camera, pos.x, pos.y + entity.getNameTagOffsetY(), pos.z );
+            }
+        }
+        
+        // Render block nameplates
+        for( Map.Entry<BlockPos, Ping.BlockData> ping : manager.getBlockPings() ) {
+            BlockPos pos = ping.getKey();
+            BlockState block = level.getBlockState( pos );
+            Vec3 offset = getNameplateOffset( level, pos, block );
+            if( offset != null ) {
+                //noinspection deprecation
+                ItemStack stack = block.getBlock().getCloneItemStack( level, pos, block );
+                renderNameplate( client, stack.getHoverName(), poseStack, bufferSource,
+                        camera, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z );
+            }
+        }
+    }
+    
+    /** @return The nameplate position offset to apply for the block, or null if no nameplate should be rendered. */
+    @Nullable
+    private static Vec3 getNameplateOffset( Level level, BlockPos pos, BlockState state ) {
+        double height = state.getShape( level, pos ).max( Direction.Axis.Y );
+        Vec3 offset = new Vec3( 0.5, height + 0.25, 0.5 );
+        
+        // Only render a nameplate for a single block from multipart blocks
+        if( state.hasProperty( BlockStateProperties.DOUBLE_BLOCK_HALF ) ) {
+            // Double blocks (e.g., doors, tall grass, etc.)
+            return state.getValue( BlockStateProperties.DOUBLE_BLOCK_HALF ) == DoubleBlockHalf.UPPER ? offset : null;
+        }
+        else if( state.hasProperty( BlockStateProperties.BED_PART ) && state.hasProperty( BlockStateProperties.HORIZONTAL_FACING ) ) {
+            // Beds
+            if( state.getValue( BlockStateProperties.BED_PART ) != BedPart.FOOT ) return null;
+            return offset.relative( state.getValue( BlockStateProperties.HORIZONTAL_FACING ), 0.5 );
+        }
+        else if( state.hasProperty( BlockStateProperties.CHEST_TYPE ) && state.hasProperty( BlockStateProperties.HORIZONTAL_FACING ) ) {
+            ChestType chestType = state.getValue( BlockStateProperties.CHEST_TYPE );
+            if( chestType != ChestType.SINGLE ) {
+                // Double chests
+                if( chestType != ChestType.RIGHT ) return null;
+                return offset.relative( state.getValue( BlockStateProperties.HORIZONTAL_FACING )
+                        .getCounterClockWise(), 0.5 );
+            }
+        }
+        return offset;
+    }
+    
+    // Packed light calculation as by #pack(int blockLightLevel, int skyLightLevel).
+    //private static final int NAMEPLATE_PACKED_LIGHT = LightTexture.pack( 15, 15 );// = 0xF000F0;
+    
+    private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource bufferSource,
+                                         Camera camera, double x, double y, double z ) {
+        poseStack.pushPose();
+        Vec3 cameraPos = camera.getPosition();
+        Vector3f cameraUpVec = camera.getUpVector();
+        float scale = ClientConfig.PREFS.INSPECTION.nameplateSize.getFloat() *
+                (float) Math.sqrt( cameraPos.distanceToSqr( x, y, z ) );
+        poseStack.translate( x - cameraPos.x + 0.5F * cameraUpVec.x,
+                y - cameraPos.y + 0.5F * cameraUpVec.y,
+                z - cameraPos.z + 0.5F * cameraUpVec.z );
+        poseStack.mulPose( camera.rotation() );
+        poseStack.scale( -scale, -scale, scale );
+        
+        Matrix4f pose = poseStack.last().pose();
+        float offset = -client.font.width( text ) >> 1;
+        client.font.drawInBatch( text, offset, -5.0F, 0xFF_FFFFFF,
+                false, pose, bufferSource, Font.DisplayMode.SEE_THROUGH,
+                0, 0xF000F0 );
+        
+        poseStack.popPose();
     }
     
     

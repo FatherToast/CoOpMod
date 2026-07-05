@@ -1,6 +1,7 @@
 package fathertoast.coopmod.client.event;
 
 
+import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.client.coordination.ClientPingHelper;
 import fathertoast.coopmod.client.coordination.FindPlayersManager;
 import fathertoast.coopmod.client.coordination.InspectManager;
@@ -43,7 +44,7 @@ public final class ClientGameEventHandler {
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
     static void onRenderLevel( RenderLevelStageEvent event ) {
-        if( event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS ) {
+        if( event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY ) {
             Minecraft client = Minecraft.getInstance();
             if( client.level == null || client.player == null ) return;
             
@@ -52,6 +53,15 @@ public final class ClientGameEventHandler {
             
             HighlightManager.renderBlockOutlines( client, client.level, event.getLevelRenderer(), event.getPoseStack(),
                     event.getProjectionMatrix(), event.getRenderTick(), event.getPartialTick(), event.getCamera(), event.getFrustum() );
+        }
+        else if( event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL ) {
+            Minecraft client = Minecraft.getInstance();
+            if( client.level == null ) return;
+            
+            if( ClientConfig.PREFS.INSPECTION.nameplateSize.get() > 0.0 ) {
+                HighlightManager.renderNameplates( client, client.level, event.getLevelRenderer(), event.getPoseStack(),
+                        event.getProjectionMatrix(), event.getRenderTick(), event.getPartialTick(), event.getCamera(), event.getFrustum() );
+            }
         }
     }
     

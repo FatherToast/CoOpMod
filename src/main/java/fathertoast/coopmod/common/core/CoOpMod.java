@@ -39,11 +39,15 @@ public final class CoOpMod {
      *  - co-ordination features
      *      - inspect
      *      - ping
+     *          - sounds
+     *              + better config capability
+     *          + a way to cancel pings
+     *          - nameplate
+     *          ? HUD arrows pointing to off-screen pings
      *      - find players
-     *          ? render marker for players beyond render distance
-     *      + nameplate for highlights
+     *          + render marker for players beyond render distance
+     *          ? HUD arrows pointing to off-screen players
      *      + HUD element showing nearby players' statuses (health, etc.)
-     *      ? HUD arrows pointing to off-screen highlights
      *      ? revive
      *  - protection features
      *      - friendly fire
@@ -81,7 +85,7 @@ public final class CoOpMod {
         
         eventBus.addListener( this::onCommonSetup );
         
-        //CMSoundEvents.REGISTRY.register( eventBus );
+        CMSoundEvents.register( eventBus );
         
         Config.initializeEarly();
         DeferredWorkQueue.lookup( Optional.of( ModLoadingStage.COMMON_SETUP ) ).ifPresent(

@@ -44,6 +44,8 @@ public class ClientPreferences extends AbstractConfigFile {
         
         public final DoubleField range;
         
+        public final DoubleField nameplateSize;
+        
         public final EnumField<KeyBindingEvents.Mode> keyMode;
         
         public final EnumField<CMJadePlugin.Mode> jadeMode;
@@ -61,8 +63,14 @@ public class ClientPreferences extends AbstractConfigFile {
             
             SPEC.newLine();
             
-            keyMode = SPEC.define( new EnumField<>( "key_mode",
-                    KeyBindingEvents.Mode.HOLD, KeyBindingEvents.MODES_NO_TAP,
+            nameplateSize = SPEC.define( new ScaledDoubleField( "ping_nameplate_size",
+                    1.0, 0.025 * 0.15, DoubleField.Range.NON_NEGATIVE,
+                    "How large nameplates over pinged blocks/entities are rendered. Setting this to 0 " +
+                            "disables ping nameplates entirely." ) );
+            
+            SPEC.newLine();
+            
+            keyMode = SPEC.define( new EnumField<>( "key_mode", KeyBindingEvents.Mode.HOLD,
                     "How the inspect key bind behaves. The key itself is bound in the game's options " +
                             "(Options > Controls > Key Binds)." ) );
             
@@ -85,7 +93,7 @@ public class ClientPreferences extends AbstractConfigFile {
         public final DoubleField range;
         
         public final EnumField<KeyBindingEvents.Mode> keyMode;
-        public final IntField tapDuration;
+        public final IntField lingerDuration;
         
         PlayerFinder( ClientPreferences parent ) {
             super( parent, "player_finder",
@@ -100,14 +108,14 @@ public class ClientPreferences extends AbstractConfigFile {
             
             SPEC.newLine();
             
-            keyMode = SPEC.define( new EnumField<>( "key_mode", KeyBindingEvents.Mode.TAP,
+            keyMode = SPEC.define( new EnumField<>( "key_mode", KeyBindingEvents.Mode.HOLD,
                     "How the find players key bind behaves. The key itself is bound in the game's options " +
                             "(Options > Controls > Key Binds)." ) );
-            tapDuration = SPEC.define( new IntField( "tap_duration",
+            lingerDuration = SPEC.define( new IntField( "linger_duration",
                     100, IntField.Range.NON_NEGATIVE,
-                    "If the key mode is set to " + TomlHelper.toLiteral( KeyBindingEvents.Mode.TAP ) +
-                            ", this is the time, in ticks, that player finding will be on for when the keybind is " +
-                            "pressed. (20 ticks = 1 second)." ) );
+                    "If the key mode is set to " + TomlHelper.toLiteral( KeyBindingEvents.Mode.HOLD ) +
+                            ", this is the time, in ticks, that player finding will stay on for after the keybind is " +
+                            "released. (20 ticks = 1 second)." ) );
         }
     }
     
@@ -134,12 +142,17 @@ public class ClientPreferences extends AbstractConfigFile {
             
             playerColors = SPEC.define( new BooleanField( "player_colored_pings", false,
                     "When enabled, this causes other players' pings to match their personal color. " +
-                            "Otherwise, their ping colors will follow the other settings." ) );
+                            "Otherwise, their ping colors will follow the other settings." ) ); // TODO implement player personal colors
             
             SPEC.newLine();
             
             var builder = new EntityMap.Builder<>( ColorIntValueCodec.NO_ALPHA );
             for( EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES.getValues() ) {
+                if( entityType == EntityType.PLAYER ) {
+                    // Special color for players
+                    builder.put( entityType, 0x00FFFF );
+                    continue;
+                }
                 switch( entityType.getCategory() ) { // TODO update to use extends super in higher Crust ver, maybe also add auto-color options
                     case MONSTER -> {} // Skip so they get the default color
                     case MISC -> builder.put( entityType, 0xFFFF00 );

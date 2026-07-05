@@ -4,5 +4,8 @@
   "key.coopmod.inspect": "Inspect",
   "key.coopmod.ping": "Ping Inspect Target",
   "key.coopmod.quick_ping": "Quick Ping",
-  "key.coopmod.find_players": "Find Players"
+  "key.coopmod.find_players": "Find Players",
+
+  "sound_event.coopmod.subtitle.ping_bink": "Ping binks",
+  "sound_event.coopmod.subtitle.ping_bink_loud": "Ping binks loudly"
 }

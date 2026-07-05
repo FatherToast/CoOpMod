@@ -1,9 +1,18 @@
 package fathertoast.coopmod.client.coordination;
 
+import fathertoast.coopmod.api.common.util.CoOpModObjects;
 import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.common.coordination.PingManager;
+import fathertoast.coopmod.common.network.message.ClientboundBlockPingPacket;
+import fathertoast.coopmod.common.network.message.ClientboundEntityPingPacket;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +40,7 @@ public final class ClientPingHelper {
         if( localPingCooldown <= 0 ) {
             localPingCooldown = ClientConfig.getPingCooldown();
             PingManager.ping( Minecraft.getInstance().player, hitResult, ClientConfig.getPingDuration() );
+            playSound( hitResult );
         }
     }
     
@@ -52,6 +62,63 @@ public final class ClientPingHelper {
     public static void onTick() {
         localPingCooldown = Math.max( 0, localPingCooldown - 1 );
     }
+    
+    public static void receivePing( ClientboundEntityPingPacket message ) {
+        PingManager manager = pingManager();
+        if( manager != null ) {
+            manager.receivePing( message );
+            playSound( message.entityId() );
+        }
+    }
+    
+    public static void receivePing( ClientboundBlockPingPacket message ) {
+        PingManager manager = pingManager();
+        if( manager != null ) {
+            manager.receivePing( message );
+            playSound( message.blockPos() );
+        }
+    }
+    
+    /** Plays the appropriate ping sound for the target. */
+    private static void playSound( @Nullable HitResult target ) {
+        if( target instanceof EntityHitResult entityTarget )
+            playSound( entityTarget.getEntity() );
+        else if( target instanceof BlockHitResult blockTarget )
+            playSound( blockTarget.getBlockPos() );
+    }
+    
+    /** Plays the appropriate ping sound for the entity. */
+    private static void playSound( int entityId ) {
+        Level level = Minecraft.getInstance().level;
+        if( level != null ) {
+            Entity entity = level.getEntity( entityId );
+            if( entity != null ) playSound( entity );
+        }
+    }
+    
+    /** Plays the appropriate ping sound for the entity. */
+    private static void playSound( Entity entity ) {
+        //TODO get sound event via entity list
+        entity.level().playLocalSound( entity.getX(), entity.getY( 0.5 ), entity.getZ(),
+                CoOpModObjects.SoundEvents.PING_BINK.get(), SoundSource.PLAYERS,
+                randomVolume( entity.level() ), randomPitch( entity.level() ), false );
+    }
+    
+    /** Plays the appropriate ping sound for the block position. */
+    private static void playSound( BlockPos pos ) {
+        Level level = Minecraft.getInstance().level;
+        if( level != null && level.isLoaded( pos ) ) {
+            BlockState block = level.getBlockState( pos );
+            //TODO get sound event via block state list
+            level.playLocalSound( pos,
+                    CoOpModObjects.SoundEvents.PING_BINK.get(), SoundSource.PLAYERS,
+                    randomVolume( level ), randomPitch( level ), false );
+        }
+    }
+    
+    private static float randomVolume( Level level ) { return 0.15F + level.random.nextFloat() * 0.05F; }
+    
+    private static float randomPitch( Level level ) { return 0.8F + level.random.nextFloat() * 0.2F; }
     
     
     private ClientPingHelper() {}

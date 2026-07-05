@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * TODO
@@ -82,8 +83,8 @@ public class PingManager {
     
     // ---- Instance Implementation ---- //
     
-    private final Map<Integer, Ping.EntityData> ENTITY_PINGS = new HashMap<>();
-    private final Map<BlockPos, Ping.BlockData> BLOCK_PINGS = new HashMap<>();
+    private final Map<Integer, Ping.EntityData> ENTITY_PINGS = new ConcurrentHashMap<>();
+    private final Map<BlockPos, Ping.BlockData> BLOCK_PINGS = new ConcurrentHashMap<>();
     
     public final Level level;
     
