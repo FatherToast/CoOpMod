@@ -181,6 +181,7 @@ public final class HighlightManager {
                     offset( pos.getY() - cameraPos.y ),
                     offset( pos.getZ() - cameraPos.z )
             );
+            //TODO Do this the right way, eventually - it works decently now for solid and cutout blocks, but NOT translucent
             BakedModel model = client.getBlockRenderer().getBlockModel( block );
             for( RenderType renderType : model.getRenderTypes( block, RandomSource.create( block.getSeed( pos ) ), ModelData.EMPTY ) ) {
                 renderType = RenderTypeHelper.getMovingBlockRenderType( renderType );
@@ -213,6 +214,7 @@ public final class HighlightManager {
         MultiBufferSource.BufferSource bufferSource = client.renderBuffers().bufferSource();
         
         // Render player nameplates
+        //TODO Maybe someday do something with PlayerFaceRenderer?
         Set<Integer> renderedPlayers;
         if( FindPlayersManager.isEnabled() ) {
             renderedPlayers = new HashSet<>();
@@ -282,6 +284,7 @@ public final class HighlightManager {
     // Packed light calculation as by #pack(int blockLightLevel, int skyLightLevel).
     //private static final int NAMEPLATE_PACKED_LIGHT = LightTexture.pack( 15, 15 );// = 0xF000F0;
     
+    /** Renders a nameplate at the given position. */
     private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource bufferSource,
                                          Camera camera, double x, double y, double z ) {
         poseStack.pushPose();
