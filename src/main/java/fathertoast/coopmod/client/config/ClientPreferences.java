@@ -13,6 +13,7 @@ import fathertoast.crust.api.config.common.field.*;
 import fathertoast.crust.api.config.common.field.collection.BlockStateMapField;
 import fathertoast.crust.api.config.common.field.collection.EntityMapField;
 import fathertoast.crust.api.config.common.file.TomlHelper;
+import fathertoast.crust.api.config.common.value.CrustAnchor;
 import fathertoast.crust.api.config.common.value.collection.BlockStateMap;
 import fathertoast.crust.api.config.common.value.collection.EntityMap;
 import fathertoast.crust.api.util.BlockStatePropertyMap;
@@ -29,6 +30,7 @@ public class ClientPreferences extends AbstractConfigFile {
     
     public final Inspection INSPECTION;
     public final PlayerFinder PLAYER_FINDER;
+    public final PartyOverlay PARTY_OVERLAY;
     public final HighlightSettings HIGHLIGHT_SETTINGS;
     
     /** Builds the config spec that should be used for this config. */
@@ -38,6 +40,7 @@ public class ClientPreferences extends AbstractConfigFile {
         
         INSPECTION = new Inspection( this );
         PLAYER_FINDER = new PlayerFinder( this );
+        PARTY_OVERLAY = new PartyOverlay( this );
         HIGHLIGHT_SETTINGS = new HighlightSettings( this );
         
         // Refresh the state of key bindings
@@ -120,6 +123,79 @@ public class ClientPreferences extends AbstractConfigFile {
                     "If the key mode is set to " + TomlHelper.toLiteral( KeyBindingEvents.Mode.HOLD ) +
                             ", this is the time, in ticks, that player finding will stay on for after the keybind is " +
                             "released. (20 ticks = 1 second)." ) );
+        }
+    }
+    
+    public static class PartyOverlay extends AbstractConfigCategory<ClientPreferences> {
+        
+        public final BooleanField enabled;
+        
+        public final DoubleField rangeSq;//for now, since there's no party system yet
+        public final BooleanField showSelf;
+        
+        public final EnumField<CrustAnchor> anchorY;
+        public final EnumField<CrustAnchor> anchorX;
+        
+        public final IntField offsetY;
+        public final IntField offsetX;
+        
+        public final IntField panelSpacing;
+        public final IntField panelFaceSize;
+        public final BooleanField panelsShowNames;
+        public final BooleanField panelsShowHealth;
+        //public final BooleanField panelsShowEffects; TODO
+        public final IntField panelPadding;
+        public final ColorIntField panelBorderColor;
+        public final ColorIntField panelBackgroundColor;
+        
+        PartyOverlay( ClientPreferences parent ) {
+            super( parent, "party_overlay",
+                    "Options to customize the 'party status' GUI overlay (HUD element)." );
+            
+            enabled = SPEC.define( new BooleanField( "enabled", true,
+                    "Whether the party overlay should be displayed." ) );
+            
+            SPEC.newLine();
+            
+            rangeSq = SPEC.define( new SqrDoubleField( "range",
+                    3.4e38, DoubleField.Range.NON_NEGATIVE,
+                    "The maximum distance at which nearby players are considered to be in your party, " +
+                            "and therefore given a panel in your party overlay." ) );
+            showSelf = SPEC.define( new BooleanField( "show_self", false,
+                    "If true, the party overlay will display a panel with your own status." ) );
+            
+            SPEC.newLine();
+            
+            anchorY = SPEC.define( new EnumField<>( "anchor.vertical", CrustAnchor.TOP, CrustAnchor.VERTICAL,
+                    "The anchor position for the party overlay. That is, where it should be positioned " +
+                            "relative to the screen." ) );
+            anchorX = SPEC.define( new EnumField<>( "anchor.horizontal", CrustAnchor.LEFT, CrustAnchor.HORIZONTAL,
+                    (String[]) null ) );
+            
+            SPEC.newLine();
+            
+            offsetY = SPEC.define( new IntField( "offset.vertical", 64, IntField.Range.ANY,
+                    "The position offset for the party overlay from the anchor position, in GUI pixels. " +
+                            "Negative values move the overlay toward the top/left, positives move it toward the bottom/right." ) );
+            offsetX = SPEC.define( new IntField( "offset.horizontal", 8, IntField.Range.ANY,
+                    (String[]) null ) );
+            
+            SPEC.increaseIndent();
+            SPEC.subcategory( "panel",
+                    "Options to customize the information, size, and appearance of the panels used to " +
+                            "display each party member's status." );
+            
+            panelFaceSize = SPEC.define( new IntField( "panel.face_size", 19, IntField.Range.NON_NEGATIVE ) );
+            panelsShowNames = SPEC.define( new BooleanField( "panel.show_name", true ) );
+            panelsShowHealth = SPEC.define( new BooleanField( "panel.show_health", true ) );
+            panelSpacing = SPEC.define( new IntField( "panel.spacing", 5, IntField.Range.NON_NEGATIVE,
+                    "Space between each party member's panel, in GUI pixels." ) );
+            panelPadding = SPEC.define( new IntField( "panel.padding", 3, IntField.Range.NON_NEGATIVE,
+                    "Space between each element within a panel, in GUI pixels." ) );
+            panelBorderColor = SPEC.define( new ColorIntField( "panel.border_color", 0x80_000000, true ) );
+            panelBackgroundColor = SPEC.define( new ColorIntField( "panel.background_color", 0xA0_333333, true ) );
+            
+            SPEC.decreaseIndent();
         }
     }
     
