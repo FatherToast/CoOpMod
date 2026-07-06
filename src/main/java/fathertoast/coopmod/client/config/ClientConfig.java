@@ -1,7 +1,6 @@
 package fathertoast.coopmod.client.config;
 
 import fathertoast.coopmod.client.coordination.FindPlayersManager;
-import fathertoast.coopmod.client.coordination.InspectManager;
 import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.coopmod.common.network.message.ClientboundMainConfigSyncPacket;
 import fathertoast.crust.api.config.common.ConfigManager;
@@ -39,7 +38,6 @@ public class ClientConfig {
     public static void sync( ClientboundMainConfigSyncPacket message ) {
         // Inspect feature
         maxInspectRange = message.maxInspectRange();
-        InspectManager.updateRange();
         // Ping feature
         pingDuration = message.pingDuration();
         pingCooldown = message.pingCooldown();

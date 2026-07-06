@@ -2,7 +2,6 @@ package fathertoast.coopmod.client.config;
 
 import fathertoast.coopmod.api.common.util.CoOpModObjects;
 import fathertoast.coopmod.client.coordination.FindPlayersManager;
-import fathertoast.coopmod.client.coordination.InspectManager;
 import fathertoast.coopmod.client.event.KeyBindingEvents;
 import fathertoast.coopmod.common.compat.jade.CMJadePlugin;
 import fathertoast.coopmod.common.config.value.HighlightEffects;
@@ -63,7 +62,6 @@ public class ClientPreferences extends AbstractConfigFile {
                     "How far you can inspect and ping blocks/entities from, in blocks.",
                     "Leaving this at a very high value effectively just sets your range to the max allowed by the " +
                             "server or to your render distance, whichever is lower." ) );
-            SPEC.callback( InspectManager::updateRange );
             
             SPEC.newLine();
             

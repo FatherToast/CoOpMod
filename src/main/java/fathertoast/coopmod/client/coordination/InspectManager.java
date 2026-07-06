@@ -1,5 +1,6 @@
 package fathertoast.coopmod.client.coordination;
 
+import fathertoast.coopmod.api.common.util.CoOpModObjects;
 import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.client.vfx.HighlightManager;
 import fathertoast.coopmod.common.coordination.Ping;
@@ -11,6 +12,7 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.Nullable;
@@ -28,8 +30,6 @@ public final class InspectManager {
     
     /** True while the player is using inspect mode. */
     private static boolean enabled;
-    /** The max distance that inspect can ray cast. Will not ray cast farther than render distance regardless of this value. */
-    private static double range;
     
     /** The current inspect target. Null if we have no target. Will never have a type of HitResult.Type.MISS. */
     @Nullable
@@ -47,9 +47,10 @@ public final class InspectManager {
     /** @return Whether "inspect" mode is on or off. */
     public static boolean isEnabled() { return enabled; }
     
-    /** Updates the inspection range based on current settings. */
-    public static void updateRange() {
-        range = Math.min( ClientConfig.PREFS.INSPECTION.range.get(), ClientConfig.getMaxInspectRange() );
+    /** Retrieves the inspection range attribute value of the given player, capped by the configured maximum. */
+    public static double getInspectRange( Player player ) {
+        double value = player.getAttributeValue( CoOpModObjects.Attributes.INSPECTION_RANGE.get() );
+        return Math.min( value, ClientConfig.getMaxInspectRange() );
     }
     
     /**
@@ -63,6 +64,8 @@ public final class InspectManager {
     public static void updateTarget( Minecraft client, LocalPlayer player, ClientLevel level, float partialTick ) {
         HighlightManager.getInspectEntities().clear();
         HighlightManager.getInspectBlocks().clear();
+        final double range = getInspectRange( player );
+        
         if( !enabled || range <= 0.0 || player.isSpectator() ) {
             target = null;
         }
@@ -89,7 +92,7 @@ public final class InspectManager {
      */
     @Nullable
     public static HitResult rayCast( Minecraft client, LocalPlayer player, float partialTick ) {
-        double range = Math.min( InspectManager.range, client.gameRenderer.getRenderDistance() );
+        double range = Math.min( getInspectRange( player ), client.gameRenderer.getRenderDistance() );
         
         Vec3 eyePos = player.getEyePosition( partialTick );
         Vec3 viewVec = player.getViewVector( 1.0F );
@@ -173,5 +176,5 @@ public final class InspectManager {
     }
     
     
-    private InspectManager() {}
+    private InspectManager() { }
 }

@@ -4,18 +4,14 @@ import fathertoast.coopmod.common.config.Config;
 import fathertoast.coopmod.common.network.PacketHandler;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DeferredWorkQueue;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingStage;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.javafmlmod.FMLModContainer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 /**
  * The core of the mod. Contains basic info about the mod, initializes configs, and hooks into FML.
@@ -83,20 +79,10 @@ public final class CoOpMod {
         
         IEventBus eventBus = context.getModEventBus();
         
-        eventBus.addListener( this::onCommonSetup );
+        ModLoadingStage.CONSTRUCT.getDeferredWorkQueue().enqueueWork( CONTAINER, Config::initializeEarly );
         
         CMSoundEvents.register( eventBus );
-        
-        Config.initializeEarly();
-        DeferredWorkQueue.lookup( Optional.of( ModLoadingStage.COMMON_SETUP ) ).ifPresent(
-                ( workQueue ) -> workQueue.enqueueWork( ModList.get().getModContainerById( MOD_ID ).orElseThrow(),
-                        Config::initialize )
-        );
-    }
-    
-    public void onCommonSetup( FMLCommonSetupEvent event ) {
-        //event.enqueueWork( () -> {
-        //} );
+        CMAttributes.register( eventBus );
     }
     
     /** @return A ResourceLocation with the mod's modid. */
