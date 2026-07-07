@@ -18,7 +18,7 @@ public class HighlightEffects extends MultiValueCodec<HighlightEffects> {
     public final SubValue<Integer> color = subValue( ColorIntValueCodec.NO_ALPHA,
             ColorIntValueCodec.NO_ALPHA.getFormat( "Duration" ) );
     
-    /** The effect amplifier (0 = I, 1 = II, etc.). */
+    /** The registry ID of the sound event to play. */
     public final SubValue<String> pingSoundId = subValue( StringValueCodec.of( ( val ) -> ResourceLocation.isValidResourceLocation( val )
                     && ForgeRegistries.SOUND_EVENTS.containsKey( ResourceLocation.parse( val ) ) ),
             StringValueCodec.RES_LOC.getFormat() );
