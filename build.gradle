@@ -48,6 +48,7 @@ minecraft {
             mods {
                 coopmod {
                     source sourceSets.main
+                    source sourceSets.test
                 }
             }
         }
