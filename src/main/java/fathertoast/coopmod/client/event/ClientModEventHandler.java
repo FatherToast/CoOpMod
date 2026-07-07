@@ -1,11 +1,13 @@
 package fathertoast.coopmod.client.event;
 
 import fathertoast.coopmod.client.config.ClientConfig;
+import fathertoast.coopmod.client.coordination.PartyStatusGuiOverlay;
 import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.crust.api.config.client.ClientConfigUtil;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -33,5 +35,7 @@ public final class ClientModEventHandler {
     /** Registers this mod's GUI overlays. */
     @SubscribeEvent
     static void onRegisterGuiOverlays( RegisterGuiOverlaysEvent event ) {
+        event.registerBelow( VanillaGuiOverlay.SCOREBOARD.id(), "party_status",
+                PartyStatusGuiOverlay::render );
     }
 }
