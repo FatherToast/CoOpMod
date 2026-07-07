@@ -142,7 +142,7 @@ public class ClientPreferences extends AbstractConfigFile {
         public final IntField panelSpacing;
         public final IntField panelFaceSize;
         public final BooleanField panelsShowNames;
-        public final BooleanField panelsShowHealth;
+        public final DoubleField panelsHealthRows;
         //public final BooleanField panelsShowEffects; TODO
         public final IntField panelPadding;
         public final ColorIntField panelBorderColor;
@@ -187,7 +187,8 @@ public class ClientPreferences extends AbstractConfigFile {
             
             panelFaceSize = SPEC.define( new IntField( "panel.face_size", 19, IntField.Range.NON_NEGATIVE ) );
             panelsShowNames = SPEC.define( new BooleanField( "panel.show_name", true ) );
-            panelsShowHealth = SPEC.define( new BooleanField( "panel.show_health", true ) );
+            panelsHealthRows = SPEC.define( new DoubleField( "panel.health_rows", 2.0, DoubleField.Range.NON_NEGATIVE,
+                    "Vertical size of the health display, in rows of hearts. Setting this below 1.0 disables the health display." ) );
             panelSpacing = SPEC.define( new IntField( "panel.spacing", 5, IntField.Range.NON_NEGATIVE,
                     "Space between each party member's panel, in GUI pixels." ) );
             panelPadding = SPEC.define( new IntField( "panel.padding", 3, IntField.Range.NON_NEGATIVE,

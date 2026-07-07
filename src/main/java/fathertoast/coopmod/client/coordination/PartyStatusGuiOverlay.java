@@ -3,6 +3,7 @@ package fathertoast.coopmod.client.coordination;
 import com.mojang.blaze3d.systems.RenderSystem;
 import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.client.config.ClientPreferences;
+import fathertoast.coopmod.client.vfx.HeartType;
 import fathertoast.crust.api.lib.CrustMath;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
@@ -17,7 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.scores.PlayerTeam;
@@ -43,23 +44,15 @@ public final class PartyStatusGuiOverlay {
             .thenComparing( entry ->
                     entry.info().getProfile().getName(), String::compareToIgnoreCase );
     
-    // Icon-driven constants
     private static final int ROW_HEIGHT = 8;
-    private static final int HEALTH_WIDTH = 90;
     private static final ResourceLocation GUI_ICONS_LOCATION = ResourceLocation.withDefaultNamespace( "textures/gui/icons.png" );
-    private static final int HEART_CONTAINER = 16;
-    private static final int HEART_CONTAINER_BLINKING = 25;
-    private static final int RED_HEART = 52;
-    private static final int GRN_HEART = 88;
-    private static final int BLK_HEART = 124;
-    private static final int YLW_HEART = 160;
-    private static final int HALF = 9;
-    private static final int BLINKING = 9 * 2;
-    private static final int HALF_BLINKING = 9 * 3;
+    private static final int ICON_SIZE = 9;
+    private static final int HEARTS_PER_ROW = 10;
+    private static final int HEALTH_WIDTH = (ICON_SIZE - 1) * HEARTS_PER_ROW + 1; // Size-1 because they overlap 1 px
+    
     
     /** Health trackers used to animate health bars. */
     private static final Map<Integer, HealthState> HEALTH_STATES = new Int2ObjectOpenHashMap<>();
-    
     
     /** Called each GUI overlay render cycle to render this overlay. */
     public static void render( ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight ) {
@@ -88,6 +81,7 @@ public final class PartyStatusGuiOverlay {
             panelWidth += faceSize + padding;
         }
         if( config.panelsShowNames.get() ) {
+            // Note: Max chars in a profile's name is 16, and glyphs are typically no wider than 6px
             int nameBoxWidth = HEALTH_WIDTH - (faceSize + padding);
             for( Entry entry : players ) {
                 int nameWidth = client.font.width( getNameForDisplay( entry ) );
@@ -96,12 +90,13 @@ public final class PartyStatusGuiOverlay {
             panelWidth += nameBoxWidth + padding;
             panelHeight += ROW_HEIGHT + padding;
         }
-        if( config.panelsShowHealth.get() ) {
+        int healthHeight = healthHeightLimit( config.panelsHealthRows.get() );
+        if( healthHeight > 0 ) {
             if( config.panelsShowNames.get() ) {
                 panelWidth = Math.max( panelWidth, HEALTH_WIDTH + (smallFaces ? padding : faceSize + (padding << 1)) );
             }
             else panelWidth += HEALTH_WIDTH + padding;
-            panelHeight += ROW_HEIGHT + padding;
+            panelHeight += healthHeight + padding;
         }
         
         panelWidth += padding;
@@ -154,9 +149,9 @@ public final class PartyStatusGuiOverlay {
                         x, y, entry.player().isSpectator() ? 0x90_FFFFFF : 0xFF_FFFFFF );
                 y += ROW_HEIGHT + padding;
             }
-            if( config.panelsShowHealth.get() ) {
+            if( healthHeight > 0 ) {
                 if( smallFaces && config.panelsShowNames.get() ) x = posX + padding;
-                renderHearts( y, x, x + HEALTH_WIDTH, gui, guiGraphics, entry );
+                renderHearts( x, y, healthHeight, gui, guiGraphics, entry );
             }
             
             yp += panelStep;
@@ -192,82 +187,106 @@ public final class PartyStatusGuiOverlay {
     }
     
     /** Renders the player's hearts display panel element. */
-    //TODO make this better, currently almost identical to the vanilla "health scoreboard" display
-    private static void renderHearts( int y, int x1, int x2, ForgeGui gui, GuiGraphics guiGraphics, Entry entry ) {
+    private static void renderHearts( int x, int y, int height, ForgeGui gui, GuiGraphics guiGraphics, Entry entry ) {
+        
         Minecraft client = gui.getMinecraft();
         
         int health = Mth.ceil( entry.player().getHealth() );
         HealthState healthState = HEALTH_STATES.computeIfAbsent( entry.player().getId(),
-                id -> new HealthState( health ) );
+                id -> new HealthState( entry, health ) );
         healthState.update( health, gui.getGuiTicks() );
-        
-        @SuppressWarnings( "DataFlowIssue" ) // If player doesn't have the max health attribute, we have bigger problems
-        int maxHealth = Math.max( Mth.ceil( entry.player().getAttribute( Attributes.MAX_HEALTH ).getValue() ),
-                Math.max( healthState.displayedValue(), health ) );
-        int hearts = Mth.positiveCeilDiv( Math.max( health, healthState.displayedValue() ), 2 );
+        int maxHealth = Math.max( Mth.ceil( entry.player().getMaxHealth() ), healthState.displayedValue() );
         int heartContainers = Mth.positiveCeilDiv( maxHealth, 2 );
         
         int absorb = Mth.ceil( entry.player().getAbsorptionAmount() );
         //TODO Hook into Natural Absorption to render containers for absorption capacity (getSteadyStateMaxAbsorption)
         int absorbContainers = Mth.positiveCeilDiv( absorb, 2 );
+        int absorbStart = heartContainers << 1;
         
+        int containers = heartContainers + absorbContainers;
+        int rows = Mth.positiveCeilDiv( containers, HEARTS_PER_ROW );
+        int rowSpacing = healthRowSpacing( rows, height );
+        
+        HeartType heartType = HeartType.forPlayer( entry.player() );
         boolean blinking = healthState.isBlinking( gui.getGuiTicks() );
-        if( hearts > 0 ) {
-            int heartSpacing = Mth.floor( Math.min( (float) (x2 - x1 - 4) / (float) heartContainers, 9.0F ) );
-            if( heartSpacing <= 3 ) {
-                // Too many hearts, write it out
-                // Shift color by heart count: red @ 0, yellow @ 5, green at 10+ hearts
-                float g = Mth.clamp( (float) health / 20.0F, 0.0F, 1.0F );
-                int color = CrustMath.toRGB( 1.0F - g, g, 0 );
-                String healthDisplay = "" + (float) health / 2.0F;
-                if( x2 - client.font.width( healthDisplay + "hp" ) >= x1 ) {
-                    healthDisplay += "hp";
-                }
-                guiGraphics.drawString( client.font, healthDisplay,
-                        (x2 + x1 - client.font.width( healthDisplay )) / 2, y, color );
+        boolean hardcore = entry.player().level().getLevelData().isHardcore();
+        
+        boolean jittering = health + absorb < 5;
+        
+        if( rowSpacing < 3 ) {
+            // TODO Placeholder; copied from vanilla "health scoreboard" display
+            // Too many hearts, write it out
+            // Shift color by health %: red @ 0%, yellow @ 50%, green at 100%
+            float g = Mth.clamp( (float) health / (float) maxHealth, 0.0F, 1.0F );
+            int color = CrustMath.toRGB( 1.0F - g, g, 0 );
+            String healthDisplay = "" + (float) health / 2.0F;
+            if( client.font.width( healthDisplay + "hp" ) <= HEALTH_WIDTH ) {
+                healthDisplay += "hp";
             }
-            else {
-                // Actually render hearts
-                for( int h = hearts; h < heartContainers; h++ ) {
-                    blitIcon( guiGraphics, x1 + h * heartSpacing, y, blinking ? HEART_CONTAINER_BLINKING : HEART_CONTAINER );
+            guiGraphics.drawString( client.font, healthDisplay, x, y, color );
+        }
+        else {
+            // Actually render hearts
+            for( int heart = 0; heart < containers; heart++ ) {
+                int row = heart / HEARTS_PER_ROW;
+                int col = heart % HEARTS_PER_ROW;
+                int xh = x + col * 8;
+                int yh = y + row * rowSpacing;
+                
+                if( jittering ) yh += healthState.random().nextInt( 2 );
+                
+                blitHeart( guiGraphics, xh, yh, HeartType.CONTAINER, false, blinking, hardcore );
+                int heartHealth = heart << 1;
+                if( heart >= heartContainers ) {
+                    int heartAbsorb = heartHealth - absorbStart;
+                    if( heartAbsorb < absorb ) {
+                        blitHeart( guiGraphics, xh, yh, heartType == HeartType.WITHERED ? heartType : HeartType.ABSORPTION,
+                                heartAbsorb + 1 == absorb, false, hardcore );
+                    }
                 }
-                for( int h = 0; h < hearts; h++ ) {
-                    int x = x1 + h * heartSpacing;
-                    int halfHeart = (h << 1) + 1;
-                    blitIcon( guiGraphics, x, y, blinking ? HEART_CONTAINER_BLINKING : HEART_CONTAINER );
-                    if( blinking ) {
-                        if( halfHeart < healthState.displayedValue() ) {
-                            blitIcon( guiGraphics, x, y, RED_HEART + BLINKING );
-                        }
-                        else if( halfHeart == healthState.displayedValue() ) {
-                            blitIcon( guiGraphics, x, y, RED_HEART + HALF_BLINKING );
-                        }
-                    }
-                    if( entry.info().getGameMode().isSurvival() ) {
-                        if( halfHeart < health ) {
-                            blitIcon( guiGraphics, x, y, h >= 10 ? YLW_HEART : RED_HEART );
-                        }
-                        else if( halfHeart == health ) {
-                            blitIcon( guiGraphics, x, y, h >= 10 ? YLW_HEART + HALF : RED_HEART + HALF );
-                        }
-                    }
-                    else {
-                        if( halfHeart < health ) {
-                            blitIcon( guiGraphics, x, y, RED_HEART + BLINKING );
-                        }
-                        else if( halfHeart == health ) {
-                            blitIcon( guiGraphics, x, y, RED_HEART + HALF_BLINKING );
-                        }
-                    }
+                if( blinking && heartHealth < healthState.displayedValue() ) {
+                    blitHeart( guiGraphics, xh, yh, heartType,
+                            heartHealth + 1 == healthState.displayedValue(), true, hardcore );
+                }
+                if( heartHealth < health ) {
+                    blitHeart( guiGraphics, xh, yh, heartType,
+                            heartHealth + 1 == health, false, hardcore );
                 }
             }
         }
     }
     
+    /** @return The space to allocate for health rendering given a number of rows. */
+    private static int healthHeightLimit( double rows ) {
+        if( rows > 1.0 ) {
+            int rowH = rows > 8 ? 3 : 12 - Mth.floor( rows );
+            return Mth.ceil( (double) rowH * (rows - 1) ) + ICON_SIZE;
+        }
+        return rows == 1.0 ? ICON_SIZE : 0;
+    }
+    
+    /**
+     * @return The space between each row of hearts given the space constraint.
+     * If the returned height is less than 3, we don't have enough space to render hearts normally.
+     */
+    private static int healthRowSpacing( int rows, int maxHeight ) {
+        if( rows < 2 ) return 3; // Doesn't matter what we return, as long as it's not less than 3
+        int rowH = rows > 8 ? 3 : 12 - rows;
+        int openSpace = maxHeight - (rowH * (rows - 1) + ICON_SIZE);
+        if( openSpace < 0 ) return rowH - Mth.positiveCeilDiv( -openSpace, rows );
+        return rowH;
+    }
+    
+    /** Draws a heart icon. */
+    private static void blitHeart( GuiGraphics guiGraphics, int x, int y, HeartType type,
+                                   boolean half, boolean blinking, boolean hardcore ) {
+        blitIcon( guiGraphics, x, y, type.getU( half, blinking ), type.getV( hardcore ) );
+    }
+    
     /** Draws a standard 9x9 GUI icon. */
-    private static void blitIcon( GuiGraphics guiGraphics, int x, int y, int icon ) {
+    private static void blitIcon( GuiGraphics guiGraphics, int x, int y, int u, int v ) {
         guiGraphics.blit( GUI_ICONS_LOCATION, x, y,
-                icon, 0, 9, 9 );
+                u, v, ICON_SIZE, ICON_SIZE );
     }
     
     /** Simple class for tracking a player's health state so that it can be animated. */
@@ -276,17 +295,23 @@ public final class PartyStatusGuiOverlay {
         private static final long DECREASE_BLINK_DURATION = 20L;
         private static final long INCREASE_BLINK_DURATION = 10L;
         
+        private final RandomSource random = RandomSource.create();
+        private final Entry playerEntry;
+        
         private int lastValue;
         private int displayedValue;
         private long lastUpdateTick;
         private long blinkUntilTick;
         
-        public HealthState( int health ) {
+        public HealthState( Entry entry, int health ) {
+            playerEntry = entry;
             displayedValue = health;
             lastValue = health;
         }
         
         public void update( int newValue, long guiTicks ) {
+            random.setSeed( guiTicks ^ playerEntry.info().getProfile().getId().getMostSignificantBits() );
+            
             if( newValue != lastValue ) {
                 long blinkDuration = newValue < lastValue ? DECREASE_BLINK_DURATION : INCREASE_BLINK_DURATION;
                 blinkUntilTick = guiTicks + blinkDuration;
@@ -297,8 +322,9 @@ public final class PartyStatusGuiOverlay {
             if( guiTicks - lastUpdateTick > DISPLAY_UPDATE_DELAY ) {
                 displayedValue = newValue;
             }
-            
         }
+        
+        public RandomSource random() { return random; }
         
         public int displayedValue() { return displayedValue; }
         
