@@ -4,6 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import fathertoast.coopmod.client.config.ClientConfig;
 import fathertoast.coopmod.client.config.ClientPreferences;
 import fathertoast.coopmod.client.vfx.HeartType;
+import fathertoast.coopmod.common.compat.naturalabsorption.CMNaturalAbsorptionPlugin;
+import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.crust.api.lib.CrustMath;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
@@ -198,10 +200,12 @@ public final class PartyStatusGuiOverlay {
         int maxHealth = Math.max( Mth.ceil( entry.player().getMaxHealth() ), healthState.displayedValue() );
         int heartContainers = Mth.positiveCeilDiv( maxHealth, 2 );
         
-        int absorb = Mth.ceil( entry.player().getAbsorptionAmount() );
-        //TODO Hook into Natural Absorption to render containers for absorption capacity (getSteadyStateMaxAbsorption)
-        int absorbContainers = Mth.positiveCeilDiv( absorb, 2 );
         int absorbStart = heartContainers << 1;
+        int absorb = Mth.ceil( entry.player().getAbsorptionAmount() );
+        int absorbContainers;
+        if( CoOpMod.NA_INSTALLED )
+            absorbContainers = Mth.ceil( CMNaturalAbsorptionPlugin.getMaxAbsorption( entry.player() ) / 2.0 );
+        else absorbContainers = Mth.positiveCeilDiv( absorb, 2 );
         
         int containers = heartContainers + absorbContainers;
         int rows = Mth.positiveCeilDiv( containers, HEARTS_PER_ROW );

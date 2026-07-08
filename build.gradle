@@ -48,6 +48,7 @@ minecraft {
             mods {
                 coopmod {
                     source sourceSets.main
+                    source sourceSets.test
                 }
             }
         }
@@ -98,6 +99,10 @@ dependencies {
     // Crust; only implement the api, but include the entire mod at runtime
     implementation "curse.maven:crust-873570:${crust_api_version}"
     runtimeOnly "curse.maven:crust-873570:${crust_src_version}"
+
+    // Natural Absorption; hook into the api to render absorption capacity on party overlay
+    //implementation fg.deobf("curse.maven:natural-absorption-224296:${natural_absorption_version}")
+    implementation "curse.maven:natural-absorption-224296:${natural_absorption_api_version}"
 
     // Add in JEI, JER and Jade to assist debugging during development
     runtimeOnly fg.deobf("curse.maven:jei-238222:${jei_version}")
