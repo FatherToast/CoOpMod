@@ -23,6 +23,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
@@ -237,16 +238,17 @@ public class ClientPreferences extends AbstractConfigFile {
             SPEC.newLine();
             
             var builder = new EntityMap.Builder<>( HighlightEffects.CODEC );
+            // Tag entry for types in the "forge:bosses" tag
+            builder.putTag( Tags.EntityTypes.BOSSES, new HighlightEffects( 0xFF0000, CoOpModObjects.SoundEvents.PING_BOSS_LOUD ) );
+            
             for( EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES.getValues() ) {
                 if( entityType == EntityType.PLAYER ) {
                     // Special color for players
                     builder.put( entityType, new HighlightEffects( 0x00FFFF, CoOpModObjects.SoundEvents.PING_BINK ) );
                     continue;
                 }
-                // TODO Maybe determine bosses some other way
-                else if( entityType == EntityType.ENDER_DRAGON || entityType == EntityType.WITHER
-                        || entityType == EntityType.WARDEN || entityType == EntityType.ELDER_GUARDIAN ) {
-                    // Special sound for bosses
+                // Wardens and Elder Guardians are kind of bosses, perchance
+                if( entityType == EntityType.WARDEN || entityType == EntityType.ELDER_GUARDIAN ) {
                     builder.put( entityType, new HighlightEffects( 0xFF0000, CoOpModObjects.SoundEvents.PING_BOSS_LOUD ) );
                     continue;
                 }
