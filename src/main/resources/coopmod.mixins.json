@@ -2,8 +2,8 @@
   "required": false,
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
-  "refmap": "coopmod.refmap.json",
-  "package": "fathertoast.coopmod.common.mixin",
+  "refmap": "coopoverhaul.refmap.json",
+  "package": "fathertoast.coopoverhaul.common.mixin",
   "mixins": [
   ],
   "client": [
