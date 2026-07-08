@@ -13,6 +13,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -48,7 +49,16 @@ public final class GameEventHandler {
     @SubscribeEvent( priority = EventPriority.NORMAL )
     public static void onPlayerLoggedIn( PlayerEvent.PlayerLoggedInEvent event ) {
         if( event.getEntity() instanceof ServerPlayer player ) {
+            // Send config sync packet to client
             Config.MAIN.sendSyncPacket( player );
+            
+            // Add the base inspection range modifier to the player
+            AttributeInstance attributeInst = player.getAttribute( CoOpModObjects.Attributes.INSPECTION_RANGE.get() );
+            if( player.getAttributes().hasModifier( CoOpModObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.getBaseInspectionRangeMod().getId() ) ) {
+                // noinspection ConstantConditions
+                attributeInst.removePermanentModifier( AttributeModUtil.getBaseInspectionRangeMod().getId() );
+            }
+            attributeInst.addPermanentModifier( AttributeModUtil.getBaseInspectionRangeMod() );
         }
     }
     
@@ -64,10 +74,9 @@ public final class GameEventHandler {
         
         // Spyglass
         if( item == Items.SPYGLASS && (slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND) ) {
-            event.addModifier( CoOpModObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.SPYGLASS_MOD );
-        }
-        else if( item == Items.CHAINMAIL_HELMET && slot == EquipmentSlot.HEAD ) {
-            event.addModifier( CoOpModObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.SPYGLASS_MOD );
+            if( !event.getModifiers().containsValue( AttributeModUtil.getSpyglassInspectionRangeMod() ) ) {
+                event.addModifier( CoOpModObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.getSpyglassInspectionRangeMod() );
+            }
         }
     }
     

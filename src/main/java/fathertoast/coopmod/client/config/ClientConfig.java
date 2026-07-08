@@ -3,6 +3,7 @@ package fathertoast.coopmod.client.config;
 import fathertoast.coopmod.client.coordination.FindPlayersManager;
 import fathertoast.coopmod.common.core.CoOpMod;
 import fathertoast.coopmod.common.network.message.ClientboundMainConfigSyncPacket;
+import fathertoast.coopmod.common.util.AttributeModUtil;
 import fathertoast.crust.api.config.common.ConfigManager;
 
 /**
@@ -36,6 +37,7 @@ public class ClientConfig {
     
     /** Updates all fields set by the logical server. */
     public static void sync( ClientboundMainConfigSyncPacket message ) {
+        AttributeModUtil.syncModifiers( message );
         // Inspect feature
         maxInspectRange = message.maxInspectRange();
         // Ping feature

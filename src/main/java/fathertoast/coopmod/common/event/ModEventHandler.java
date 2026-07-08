@@ -1,7 +1,6 @@
 package fathertoast.coopmod.common.event;
 
 import fathertoast.coopmod.api.common.util.CoOpModObjects;
-import fathertoast.coopmod.common.config.Config;
 import fathertoast.coopmod.common.core.CoOpMod;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
@@ -22,8 +21,7 @@ public final class ModEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent
-    public static void onCommonSetup( FMLCommonSetupEvent event ) {
-    }
+    public static void onCommonSetup( FMLCommonSetupEvent event ) { }
     
     /**
      * Called when other mods can safely add attributes to existing entity types.
@@ -32,7 +30,7 @@ public final class ModEventHandler {
      */
     @SubscribeEvent
     public static void onAttributeModification( EntityAttributeModificationEvent event ) {
-        event.add( EntityType.PLAYER, CoOpModObjects.Attributes.INSPECTION_RANGE.get(), Config.MAIN.GENERAL.defaultInspectRange.get() );
+        event.add( EntityType.PLAYER, CoOpModObjects.Attributes.INSPECTION_RANGE.get() );
     }
     
     /**

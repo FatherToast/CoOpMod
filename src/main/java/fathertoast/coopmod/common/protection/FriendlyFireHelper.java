@@ -31,5 +31,5 @@ public final class FriendlyFireHelper {
     }
     
     
-    private FriendlyFireHelper() {}
+    private FriendlyFireHelper() { }
 }
