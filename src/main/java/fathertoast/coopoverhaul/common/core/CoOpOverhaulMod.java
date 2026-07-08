@@ -37,14 +37,13 @@ public final class CoOpOverhaulMod {
      *      - inspect
      *      - ping
      *          - sounds
-     *              + better config capability
-     *          + a way to cancel pings
      *          - nameplate
+     *          + a way to cancel pings
      *          ? HUD arrows pointing to off-screen pings
      *      - find players
      *          + render marker for players beyond render distance
      *          ? HUD arrows pointing to off-screen players
-     *      + HUD element showing nearby players' statuses (health, etc.)
+     *      - party status GUI overlay
      *      ? revive
      *  - protection features
      *      - friendly fire
