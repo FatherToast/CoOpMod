@@ -5,8 +5,8 @@ issueTrackerURL = "https://github.com/FatherToast/CoOpOverhaul/issues/"
 
 [[mods]]
 logoFile = "banner.png"
-authors = "Father Toast"
-credits = "Sarinsa, Mother Toast, & Baby Toast"
+authors = "Father Toast & Sarinsa"
+credits = "Mother Toast & Baby Toast"
 version = "${file.jarVersion}"
 displayName = "Co-Op Overhaul"
 modId = "coopoverhaul"
