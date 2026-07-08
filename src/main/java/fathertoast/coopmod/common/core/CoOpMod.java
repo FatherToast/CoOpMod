@@ -4,18 +4,15 @@ import fathertoast.coopmod.common.config.Config;
 import fathertoast.coopmod.common.network.PacketHandler;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DeferredWorkQueue;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingStage;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.javafmlmod.FMLModContainer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 /**
  * The core of the mod. Contains basic info about the mod, initializes configs, and hooks into FML.
@@ -70,6 +67,9 @@ public final class CoOpMod {
     /** Mod instance. */
     public static CoOpMod INSTANCE;
     
+    /** True if Natural Absorption is installed. */
+    public static boolean NA_INSTALLED;
+    
     /** Mod container. */
     public final FMLModContainer CONTAINER;
     /** Packet handler instance */
@@ -84,19 +84,24 @@ public final class CoOpMod {
         IEventBus eventBus = context.getModEventBus();
         
         eventBus.addListener( this::onCommonSetup );
+        eventBus.addListener( this::onInterModEnqueue );
         
         CMSoundEvents.register( eventBus );
         
         Config.initializeEarly();
-        DeferredWorkQueue.lookup( Optional.of( ModLoadingStage.COMMON_SETUP ) ).ifPresent(
-                ( workQueue ) -> workQueue.enqueueWork( ModList.get().getModContainerById( MOD_ID ).orElseThrow(),
-                        Config::initialize )
-        );
+        //        DeferredWorkQueue.lookup( Optional.of( ModLoadingStage.ENQUEUE_IMC ) ).ifPresent(
+        //                ( workQueue ) -> workQueue.enqueueWork( CONTAINER, something)
+        //        );
     }
     
     public void onCommonSetup( FMLCommonSetupEvent event ) {
-        //event.enqueueWork( () -> {
-        //} );
+        event.enqueueWork( Config::initialize );
+    }
+    
+    public void onInterModEnqueue( InterModEnqueueEvent event ) {
+        // Temporarily disabled until NA syncs its own max absorption to other clients
+        //        NA_INSTALLED = InterModComms.sendTo( "naturalabsorption", "getNaturalAbsorptionAPI",
+        //                () -> CMNaturalAbsorptionPlugin.RECEIVER );
     }
     
     /** @return A ResourceLocation with the mod's modid. */
