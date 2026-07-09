@@ -3,6 +3,7 @@ package fathertoast.coopoverhaul.client.coordination;
 import com.mojang.blaze3d.systems.RenderSystem;
 import fathertoast.coopoverhaul.client.config.ClientConfig;
 import fathertoast.coopoverhaul.client.config.ClientPreferences;
+import fathertoast.coopoverhaul.client.event.ClientGameEventHandler;
 import fathertoast.coopoverhaul.client.vfx.HeartType;
 import fathertoast.coopoverhaul.common.compat.naturalabsorption.CONaturalAbsorptionPlugin;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
@@ -172,6 +173,7 @@ public final class PartyStatusGuiOverlay {
                     
                     guiGraphics.fill( x, y, x + playerDisplayWidth, y + playerDisplayHeight,
                             config.panelPortraitColor.get() );
+                    ClientGameEventHandler.skipNextNameTag();
                     // Note the Forge-added parameters are misleading:
                     // "angleXComponent" rotates on the +Y axis (looking from the top of the screen, clockwise)
                     // "angleYComponent" rotates on the -X axis (looking from the left side of the screen, anti-clockwise)

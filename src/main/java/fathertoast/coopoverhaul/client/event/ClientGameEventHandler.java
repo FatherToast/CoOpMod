@@ -8,11 +8,14 @@ import fathertoast.coopoverhaul.client.coordination.InspectManager;
 import fathertoast.coopoverhaul.client.vfx.HighlightManager;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -62,6 +65,24 @@ public final class ClientGameEventHandler {
                 HighlightManager.renderNameplates( client, client.level, event.getLevelRenderer(), event.getPoseStack(),
                         event.getProjectionMatrix(), event.getRenderTick(), event.getPartialTick(), event.getCamera(), event.getFrustum() );
             }
+        }
+    }
+    
+    private static boolean skipNameTag;
+    
+    public static void skipNextNameTag() { skipNameTag = true; }
+    
+    /**
+     * Fired before an entity renderer renders an entity name.
+     * The event cannot be canceled, but has a result.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.HIGHEST )
+    static void onRenderNameTag( RenderNameTagEvent event ) {
+        if( skipNameTag && event.getEntity() instanceof Player ) {
+            skipNameTag = false;
+            event.setResult( Event.Result.DENY );
         }
     }
     
