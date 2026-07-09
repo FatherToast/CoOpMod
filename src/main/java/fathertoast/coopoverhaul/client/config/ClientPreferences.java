@@ -141,13 +141,15 @@ public class ClientPreferences extends AbstractConfigFile {
         public final IntField offsetX;
         
         public final IntField panelSpacing;
-        public final IntField panelFaceSize;
+        public final IntField panelPortraitHeight;
+        public final BooleanField panelPortraitUsesModel;
         public final BooleanField panelsShowNames;
         public final DoubleField panelsHealthRows;
         //public final BooleanField panelsShowEffects; TODO
         public final IntField panelPadding;
         public final ColorIntField panelBorderColor;
         public final ColorIntField panelBackgroundColor;
+        public final ColorIntField panelPortraitColor;
         
         PartyOverlay( ClientPreferences parent ) {
             super( parent, "party_overlay",
@@ -186,7 +188,10 @@ public class ClientPreferences extends AbstractConfigFile {
                     "Options to customize the information, size, and appearance of the panels used to " +
                             "display each party member's status." );
             
-            panelFaceSize = SPEC.define( new IntField( "panel.face_size", 19, IntField.Range.NON_NEGATIVE ) );
+            panelPortraitHeight = SPEC.define( new IntField( "panel.portrait_size", 30, IntField.Range.NON_NEGATIVE,
+                    "The height of the party member's visual display (model or face icon). Setting this to 0 disables it." ) );
+            panelPortraitUsesModel = SPEC.define( new BooleanField( "panel.portrait_model", true,
+                    "If true, the party member's model will be displayed. Otherwise, their face icon will be rendered." ) );
             panelsShowNames = SPEC.define( new BooleanField( "panel.show_name", true ) );
             panelsHealthRows = SPEC.define( new DoubleField( "panel.health_rows", 2.0, DoubleField.Range.NON_NEGATIVE,
                     "Vertical size of the health display, in rows of hearts. Setting this below 1.0 disables the health display." ) );
@@ -196,6 +201,7 @@ public class ClientPreferences extends AbstractConfigFile {
                     "Space between each element within a panel, in GUI pixels." ) );
             panelBorderColor = SPEC.define( new ColorIntField( "panel.border_color", 0x80_000000, true ) );
             panelBackgroundColor = SPEC.define( new ColorIntField( "panel.background_color", 0xA0_333333, true ) );
+            panelPortraitColor = SPEC.define( new ColorIntField( "panel.portrait_color", 0x80_000000, true ) );
             
             SPEC.decreaseIndent();
         }

@@ -13,6 +13,7 @@ import net.minecraft.Optionull;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -52,6 +53,18 @@ public final class PartyStatusGuiOverlay {
     private static final int HEARTS_PER_ROW = 10;
     private static final int HEALTH_WIDTH = (ICON_SIZE - 1) * HEARTS_PER_ROW + 1; // Size-1 because they overlap 1 px
     
+    // Calculations for player model rendering; based on values/texture of InventoryScreen
+    //    private static final int M_WIDTH = 50;
+    //    private static final int M_HEIGHT = 65;
+    //    private static final int M_Y_POS = M_HEIGHT - 3;
+    //    private static final int M_SCALE = 30;
+    //    private static final double H2W = (double) M_WIDTH / M_HEIGHT;
+    //    private static final double H2Y = (double) M_Y_POS / M_HEIGHT;
+    //    private static final double H2S = (double) M_SCALE / M_HEIGHT;
+    private static final double H2W = 0.7692307692307693;
+    private static final double H2Y = 0.9538461538461539;
+    private static final double H2S = 0.46153846153846156;
+    
     
     /** Health trackers used to animate health bars. */
     private static final Map<Integer, HealthState> HEALTH_STATES = new Int2ObjectOpenHashMap<>();
@@ -67,9 +80,10 @@ public final class PartyStatusGuiOverlay {
         if( players.isEmpty() ) return;
         
         // Configured panel contents
-        int faceSize = config.panelFaceSize.get();
-        boolean showEffects = false;
-        boolean showEffectLevels = false;
+        int playerDisplayHeight = config.panelPortraitHeight.get();
+        boolean showModel = config.panelPortraitUsesModel.get();
+        //        boolean showEffects = false; //TODO sync player effects to render them here
+        //        boolean showEffectLevels = false;
         int padding = config.panelPadding.get();
         int borderColor = config.panelBorderColor.get();
         
@@ -78,13 +92,22 @@ public final class PartyStatusGuiOverlay {
         int panelWidth = 0;
         int panelHeight = 0;
         
-        boolean smallFaces = faceSize <= ROW_HEIGHT;
-        if( faceSize > 0 ) {
-            panelWidth += faceSize + padding;
+        boolean smallFaces = playerDisplayHeight <= ROW_HEIGHT;
+        int playerDisplayWidth;
+        if( playerDisplayHeight > 0 ) {
+            if( showModel ) {
+                playerDisplayWidth = (int) (playerDisplayHeight * H2W);
+            }
+            else {
+                //noinspection SuspiciousNameCombination
+                playerDisplayWidth = playerDisplayHeight;
+            }
+            panelWidth += playerDisplayWidth + padding;
         }
+        else playerDisplayWidth = 0;
         if( config.panelsShowNames.get() ) {
             // Note: Max chars in a profile's name is 16, and glyphs are typically no wider than 6px
-            int nameBoxWidth = HEALTH_WIDTH - (faceSize + padding);
+            int nameBoxWidth = HEALTH_WIDTH - (playerDisplayHeight + padding);
             for( Entry entry : players ) {
                 int nameWidth = client.font.width( getNameForDisplay( entry ) );
                 if( nameBoxWidth < nameWidth ) nameBoxWidth = nameWidth;
@@ -95,14 +118,14 @@ public final class PartyStatusGuiOverlay {
         int healthHeight = healthHeightLimit( config.panelsHealthRows.get() );
         if( healthHeight > 0 ) {
             if( config.panelsShowNames.get() ) {
-                panelWidth = Math.max( panelWidth, HEALTH_WIDTH + (smallFaces ? padding : faceSize + (padding << 1)) );
+                panelWidth = Math.max( panelWidth, HEALTH_WIDTH + (smallFaces ? padding : playerDisplayWidth + (padding << 1)) );
             }
             else panelWidth += HEALTH_WIDTH + padding;
             panelHeight += healthHeight + padding;
         }
         
         panelWidth += padding;
-        panelHeight = Math.max( panelHeight, faceSize + padding ) + padding;
+        panelHeight = Math.max( panelHeight, playerDisplayHeight + padding ) + padding;
         
         //TODO Make this smarter; limit and maybe compress panels to fit on screen
         int panelStep = panelHeight + config.panelSpacing.get();
@@ -139,12 +162,31 @@ public final class PartyStatusGuiOverlay {
             y += padding;
             
             RenderSystem.enableBlend();
-            if( faceSize > 0 ) {
-                boolean upsideDown = LivingEntityRenderer.isEntityUpsideDown( entry.player() );
-                boolean hasHat = entry.player().isModelPartShown( PlayerModelPart.HAT );
-                PlayerFaceRenderer.draw( guiGraphics, entry.info().getSkinLocation(),
-                        x, y, faceSize, hasHat, upsideDown );
-                x += faceSize + padding;
+            if( playerDisplayHeight > 0 ) {
+                if( showModel ) {
+                    // Render the player's model similar to the inventory
+                    // Derived from rendering in an approximate 50px wide x 70px high box at the point (25, 57) at scale 30
+                    int offsetX = playerDisplayWidth / 2;
+                    int offsetY = (int) (playerDisplayHeight * H2Y);
+                    int modelScale = (int) (playerDisplayHeight * H2S);
+                    
+                    guiGraphics.fill( x, y, x + playerDisplayWidth, y + playerDisplayHeight,
+                            config.panelPortraitColor.get() );
+                    // Note the Forge-added parameters are misleading:
+                    // "angleXComponent" rotates on the +Y axis (looking from the top of the screen, clockwise)
+                    // "angleYComponent" rotates on the -X axis (looking from the left side of the screen, anti-clockwise)
+                    // Units are in degrees and the method multiplies these angles by 20 (head angle multiplied by 40)
+                    InventoryScreen.renderEntityInInventoryFollowsAngle( guiGraphics, x + offsetX, y + offsetY,
+                            modelScale, -1.0F, -0.2F, entry.player() );
+                }
+                else {
+                    // Render the player's face texture
+                    boolean upsideDown = LivingEntityRenderer.isEntityUpsideDown( entry.player() );
+                    boolean hasHat = entry.player().isModelPartShown( PlayerModelPart.HAT );
+                    PlayerFaceRenderer.draw( guiGraphics, entry.info().getSkinLocation(),
+                            x, y, playerDisplayHeight, hasHat, upsideDown );
+                }
+                x += playerDisplayWidth + padding;
             }
             if( config.panelsShowNames.get() ) {
                 guiGraphics.drawString( client.font, getNameForDisplay( entry ),
