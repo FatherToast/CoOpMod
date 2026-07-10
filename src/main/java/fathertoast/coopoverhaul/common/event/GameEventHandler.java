@@ -3,6 +3,7 @@ package fathertoast.coopoverhaul.common.event;
 
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.coordination.PingManager;
+import fathertoast.coopoverhaul.common.coordination.ReviveManager;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.protection.FriendlyFireHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -11,11 +12,13 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -107,6 +110,21 @@ public final class GameEventHandler {
             }
         }
     }
+    
+    //    /**
+    //     * Called when an entity dies. If canceled, the entity does not die.
+    //     *
+    //     * @param event The event data.
+    //     */
+    //    @SubscribeEvent( priority = EventPriority.LOWEST )
+    //    static void onLivingDeath( LivingDeathEvent event ) {
+    //        if( event.isCanceled() || event.getEntity().level().isClientSide() ) return;
+    //
+    //        if( Config.MAIN.GENERAL.reviveEnabled.get() && event.getEntity() instanceof ServerPlayer player ) {
+    //            event.setCanceled( true );
+    //            ReviveManager.downPlayer( player, event.getSource() );
+    //        }
+    //    }
     
     /**
      * Called when a block is placed. If canceled, the block will not be placed.

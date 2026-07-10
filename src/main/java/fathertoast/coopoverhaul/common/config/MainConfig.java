@@ -47,6 +47,8 @@ public class MainConfig extends AbstractConfigFile {
         public final DoubleField friendlyFireMulti;
         public final EnumField<FriendlyFireHelper.Mode> friendlyFireMode;
         
+        //        public final BooleanField reviveEnabled;
+        
         public final DoubleField maxInspectRange;
         public final BooleanField allowRecoloringHidden;
         public final DoubleField maxFindPlayersRange;
@@ -73,6 +75,12 @@ public class MainConfig extends AbstractConfigFile {
                     " * " + TomlHelper.toLiteral( FriendlyFireHelper.Mode.STRICT ) +
                             " - Players are only considered friendly if you are both in allied teams (teamless " +
                             "players are non-friendly to all)." ) );
+            
+            //            SPEC.newLine();
+            //
+            //            reviveEnabled = SPEC.define( new BooleanField( "allow_revive", true,
+            //                    "When enabled, players who would die will be put into a 'downed' state instead. " +
+            //                            "Downed players can be revived by other players or choose to give up to respawn normally." ) );
             
             SPEC.newLine();
             
