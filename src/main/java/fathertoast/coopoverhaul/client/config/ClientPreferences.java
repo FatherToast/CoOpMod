@@ -2,7 +2,6 @@ package fathertoast.coopoverhaul.client.config;
 
 import fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects;
 import fathertoast.coopoverhaul.client.coordination.FindPlayersManager;
-import fathertoast.coopoverhaul.client.coordination.InspectManager;
 import fathertoast.coopoverhaul.client.event.KeyBindingEvents;
 import fathertoast.coopoverhaul.common.compat.jade.COJadePlugin;
 import fathertoast.coopoverhaul.common.config.value.HighlightEffects;
@@ -54,6 +53,7 @@ public class ClientPreferences extends AbstractConfigFile {
         
         public final DoubleField nameplateSize;
         
+        //TODO add option to enable inspect mode when zoomed in with a spyglass
         public final EnumField<KeyBindingEvents.Mode> keyMode;
         
         public final EnumField<COJadePlugin.Mode> jadeMode;

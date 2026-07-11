@@ -308,6 +308,7 @@ public final class HighlightManager {
                 y - cameraPos.y + 0.5F * cameraUpVec.y,
                 z - cameraPos.z + 0.5F * cameraUpVec.z );
         poseStack.mulPose( camera.rotation() );
+        //TODO scale smaller when zoomed in with a spyglass
         poseStack.scale( -scale, -scale, scale );
         
         Matrix4f pose = poseStack.last().pose();
