@@ -1,7 +1,7 @@
-package fathertoast.coopmod.common.util;
+package fathertoast.coopoverhaul.common.util;
 
-import fathertoast.coopmod.common.config.Config;
-import fathertoast.coopmod.common.network.message.ClientboundMainConfigSyncPacket;
+import fathertoast.coopoverhaul.common.config.Config;
+import fathertoast.coopoverhaul.common.network.message.ClientboundMainConfigSyncPacket;
 import fathertoast.crust.api.util.OnClient;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.server.ServerStartedEvent;
@@ -70,7 +70,7 @@ public final class AttributeModUtil {
     // -------------------- Event listener --------------------
     
     /**
-     * Added as a listener from {@link fathertoast.coopmod.common.core.CoOpMod#CoOpMod(FMLJavaModLoadingContext)}.
+     * Added as a listener from {@link fathertoast.coopoverhaul.common.core.CoOpOverhaulMod#CoOpOverhaulMod(FMLJavaModLoadingContext)}.
      * <br><br>
      * Called on the server when the server has finished loading and is ready for playing.
      */

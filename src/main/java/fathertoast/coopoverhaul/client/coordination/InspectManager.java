@@ -1,5 +1,6 @@
 package fathertoast.coopoverhaul.client.coordination;
 
+import fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects;
 import fathertoast.coopoverhaul.client.config.ClientConfig;
 import fathertoast.coopoverhaul.client.vfx.HighlightManager;
 import fathertoast.coopoverhaul.common.coordination.Ping;
@@ -48,7 +49,7 @@ public final class InspectManager {
     
     /** Retrieves the inspection range attribute value of the given player, capped by the configured maximum. */
     public static double getInspectRange( Player player ) {
-        double value = player.getAttributeValue( CoOpModObjects.Attributes.INSPECTION_RANGE.get() );
+        double value = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
         return Math.min( value, ClientConfig.getMaxInspectRange() );
     }
     

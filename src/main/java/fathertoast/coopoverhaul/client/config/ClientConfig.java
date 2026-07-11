@@ -4,6 +4,7 @@ import fathertoast.coopoverhaul.client.coordination.FindPlayersManager;
 import fathertoast.coopoverhaul.client.coordination.InspectManager;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.network.message.ClientboundMainConfigSyncPacket;
+import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import fathertoast.crust.api.config.common.ConfigManager;
 
 /**

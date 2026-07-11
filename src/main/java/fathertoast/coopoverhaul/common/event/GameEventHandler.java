@@ -1,20 +1,22 @@
 package fathertoast.coopoverhaul.common.event;
 
 
+import fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects;
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.coordination.PingManager;
-import fathertoast.coopoverhaul.common.coordination.ReviveManager;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.protection.FriendlyFireHelper;
+import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -23,7 +25,6 @@ import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -47,18 +48,21 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
+    @SuppressWarnings( "ConstantConditions" )
     public static void onPlayerLoggedIn( PlayerEvent.PlayerLoggedInEvent event ) {
         if( event.getEntity() instanceof ServerPlayer player ) {
             // Send config sync packet to client
             Config.MAIN.sendSyncPacket( player );
             
-            // Add the base inspection range modifier to the player
-            AttributeInstance attributeInst = player.getAttribute( CoOpModObjects.Attributes.INSPECTION_RANGE.get() );
-            if( player.getAttributes().hasModifier( CoOpModObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.getBaseInspectionRangeMod().getId() ) ) {
-                // noinspection ConstantConditions
-                attributeInst.removePermanentModifier( AttributeModUtil.getBaseInspectionRangeMod().getId() );
+            // Refresh or add the base inspection range modifier to the player
+            final Attribute attribute = CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get();
+            final AttributeInstance instance = player.getAttribute( attribute );
+            final AttributeModifier modifier = AttributeModUtil.getBaseInspectionRangeMod();
+            
+            if( player.getAttributes().hasModifier( attribute, modifier.getId() ) ) {
+                instance.removePermanentModifier( modifier.getId() );
             }
-            attributeInst.addPermanentModifier( AttributeModUtil.getBaseInspectionRangeMod() );
+            instance.addPermanentModifier( modifier );
         }
     }
     
@@ -67,15 +71,17 @@ public final class GameEventHandler {
      *
      * @param event The event data.
      */
+    // TODO - Unfortunately this event doesn't provide entity
+    //        context, so we have no way of checking modifiers of items in other slots.
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    public static void onItemAttributeModifier( ItemAttributeModifierEvent event ) {
+    public static void onModifyItemAttributes( ItemAttributeModifierEvent event ) {
         final Item item = event.getItemStack().getItem();
         final EquipmentSlot slot = event.getSlotType();
         
         // Spyglass
         if( item == Items.SPYGLASS && (slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND) ) {
             if( !event.getModifiers().containsValue( AttributeModUtil.getSpyglassInspectionRangeMod() ) ) {
-                event.addModifier( CoOpModObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.getSpyglassInspectionRangeMod() );
+                event.addModifier( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.getSpyglassInspectionRangeMod() );
             }
         }
     }
@@ -118,6 +124,7 @@ public final class GameEventHandler {
     @SubscribeEvent( priority = EventPriority.NORMAL )
     public static void onLivingAttack( LivingAttackEvent event ) {
         LivingEntity entity = event.getEntity();
+        // noinspection resource
         if( !entity.level().isClientSide() ) {
             if( entity instanceof Player player && FriendlyFireHelper.shouldCancelDamage( player, event.getSource() ) ) {
                 event.setCanceled( true );
@@ -136,6 +143,7 @@ public final class GameEventHandler {
     @SubscribeEvent( priority = EventPriority.NORMAL )
     public static void onLivingHurt( LivingHurtEvent event ) {
         LivingEntity entity = event.getEntity();
+        // noinspection resource
         if( !entity.level().isClientSide() ) {
             if( entity instanceof Player player && FriendlyFireHelper.isFriendlyFire( player, event.getSource() ) ) {
                 event.setAmount( event.getAmount() * Config.MAIN.GENERAL.friendlyFireMulti.getFloat() );

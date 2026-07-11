@@ -1,5 +1,6 @@
 package fathertoast.coopoverhaul.common.coordination;
 
+import fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects;
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.network.PacketHandler;
 import fathertoast.coopoverhaul.common.network.message.*;
@@ -246,7 +247,7 @@ public class PingManager {
     }
     
     private static boolean isEntityTooFar( ServerPlayer player, Entity entity ) {
-        double range = player.getAttributeValue( CoOpModObjects.Attributes.INSPECTION_RANGE.get() );
+        double range = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
         double maxRange = Math.min( range, Config.MAIN.GENERAL.maxInspectRange.get() ) + 2.0;
         Vec3 eyePos = player.getEyePosition( 1.0F );
         AABB entityBB = entity.getBoundingBox();
@@ -258,7 +259,7 @@ public class PingManager {
     }
     
     private static boolean isBlockTooFar( ServerPlayer player, BlockPos blockPos ) {
-        double range = player.getAttributeValue( CoOpModObjects.Attributes.INSPECTION_RANGE.get() );
+        double range = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
         double maxRange = Math.min( range, Config.MAIN.GENERAL.maxInspectRange.get() ) + 2.0;
         Vec3 eyePos = player.getEyePosition( 1.0F );
         double dX = blockPos.getX() + 0.5 - eyePos.x;

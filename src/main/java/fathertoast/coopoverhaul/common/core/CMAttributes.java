@@ -1,4 +1,4 @@
-package fathertoast.coopmod.common.core;
+package fathertoast.coopoverhaul.common.core;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -10,11 +10,11 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Objects;
 
-import static fathertoast.coopmod.api.common.util.CoOpModObjects.Attributes.INSPECTION_RANGE;
+import static fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects.Attributes.INSPECTION_RANGE;
 
 public final class CMAttributes {
     
-    private static final DeferredRegister<Attribute> REGISTRY = DeferredRegister.create( ForgeRegistries.ATTRIBUTES, CoOpMod.MOD_ID );
+    private static final DeferredRegister<Attribute> REGISTRY = DeferredRegister.create( ForgeRegistries.ATTRIBUTES, CoOpOverhaulMod.MOD_ID );
     
     static {
         register( INSPECTION_RANGE, true, 0.0, 0.0, 2048.0 );

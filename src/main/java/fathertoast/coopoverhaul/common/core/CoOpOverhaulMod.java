@@ -2,6 +2,7 @@ package fathertoast.coopoverhaul.common.core;
 
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.network.PacketHandler;
+import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -85,10 +86,10 @@ public final class CoOpOverhaulMod {
         eventBus.addListener( this::onInterModEnqueue );
         
         MinecraftForge.EVENT_BUS.addListener( AttributeModUtil::onServerStarted );
-
+        
         Config.initializeEarly();
         
-        CMSoundEvents.register( eventBus );
+        COSoundEvents.register( eventBus );
         CMAttributes.register( eventBus );
     }
     
