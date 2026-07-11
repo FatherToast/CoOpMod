@@ -90,7 +90,7 @@ public final class CoOpOverhaulMod {
         Config.initializeEarly();
         
         COSoundEvents.register( eventBus );
-        CMAttributes.register( eventBus );
+        COAttributes.register( eventBus );
     }
     
     public void onInterModEnqueue( InterModEnqueueEvent event ) {

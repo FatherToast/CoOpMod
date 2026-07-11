@@ -48,9 +48,9 @@ public class MainConfig extends AbstractConfigFile {
         
         //        public final BooleanField reviveEnabled;
         
-        public final DoubleField defaultInspectRange;
+        public final DoubleField defaultInspectRange;//TODO make this update without restart
         public final DoubleField maxInspectRange;
-        public final DoubleField spyglassInspectRange;
+        public final DoubleField spyglassInspectRange;//TODO make this update without restart
         
         public final BooleanField allowRecoloringHidden;
         public final DoubleField maxFindPlayersRange;

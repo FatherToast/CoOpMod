@@ -27,7 +27,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * TODO
+ * Controls the 'ping' function.
+ * <p>
+ * On the logical server, it keeps track of all active pings in each dimension, validates incoming
+ * pings from clients, and distributes ping packets to relevant clients.
+ * <p>
+ * On the logical client, it only keeps track of pings in the player's current dimension and sends
+ * ping packets to the server.
  */
 public class PingManager {
     /** Mapping of each level key (dimension) to its ping manager instance. */

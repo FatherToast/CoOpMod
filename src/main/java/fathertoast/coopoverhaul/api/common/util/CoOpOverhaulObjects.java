@@ -11,7 +11,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryObject;
 
 /**
- * This helper class contains references/getters for all registry objects provided by the Co-Op Mod.
+ * This helper class contains references/getters for all registry objects provided by Co-Op Overhaul.
  */
 public final class CoOpOverhaulObjects {
     

@@ -12,7 +12,7 @@ import java.util.Objects;
 
 import static fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects.Attributes.INSPECTION_RANGE;
 
-public final class CMAttributes {
+public final class COAttributes {
     
     private static final DeferredRegister<Attribute> REGISTRY = DeferredRegister.create( ForgeRegistries.ATTRIBUTES, CoOpOverhaulMod.MOD_ID );
     
@@ -41,5 +41,5 @@ public final class CMAttributes {
     }
     
     
-    private CMAttributes() { }
+    private COAttributes() {}
 }
