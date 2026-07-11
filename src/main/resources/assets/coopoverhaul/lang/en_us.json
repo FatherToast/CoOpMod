@@ -11,5 +11,7 @@
   "sound_event.coopoverhaul.subtitle.ping_hostile": "A player pings an enemy",
   "sound_event.coopoverhaul.subtitle.ping_hostile_loud": "A player pings an enemy loudly",
   "sound_event.coopoverhaul.subtitle.ping_boss": "A player pings a boss!",
-  "sound_event.coopoverhaul.subtitle.ping_boss_loud": "A player pings a boss loudly!"
+  "sound_event.coopoverhaul.subtitle.ping_boss_loud": "A player pings a boss loudly!",
+
+  "attribute.name.coopmod.inspection_range": "Inspection Range"
 }

@@ -5,6 +5,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryObject;
@@ -24,6 +25,11 @@ public final class CoOpOverhaulObjects {
         RegistryObject<SoundEvent> PING_BOSS_LOUD = sound( "ping.boss_loud" );
     }
     
+    /** Attributes. */
+    public interface Attributes {
+        RegistryObject<Attribute> INSPECTION_RANGE = attribute( "inspection_range" );
+    }
+    
     // No command args yet
     //    /** Command argument types. */
     //    public interface CommandArguments {
@@ -35,6 +41,9 @@ public final class CoOpOverhaulObjects {
     
     /** @return An object holder for a sound event type. */
     private static RegistryObject<SoundEvent> sound( String name ) { return ro( name, ForgeRegistries.SOUND_EVENTS ); }
+    
+    /** @return An object holder for an attribute. */
+    private static RegistryObject<Attribute> attribute( String name ) { return ro( name, ForgeRegistries.ATTRIBUTES ); }
     
     //    /** @return An object holder for a command argument type. */
     //    private static <T extends ArgumentType<?>> RegistryObject<ArgumentTypeInfo<T, ?>> cmdArg( String name ) { return ro( name, ForgeRegistries.COMMAND_ARGUMENT_TYPES ); }

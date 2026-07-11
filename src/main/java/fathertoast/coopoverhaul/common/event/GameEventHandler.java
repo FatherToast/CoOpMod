@@ -1,24 +1,30 @@
 package fathertoast.coopoverhaul.common.event;
 
 
+import fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects;
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.coordination.PingManager;
-import fathertoast.coopoverhaul.common.coordination.ReviveManager;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.protection.FriendlyFireHelper;
+import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.GameType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
+import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -42,9 +48,41 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onPlayerLoggedIn( PlayerEvent.PlayerLoggedInEvent event ) {
+    @SuppressWarnings( "ConstantConditions" )
+    public static void onPlayerLoggedIn( PlayerEvent.PlayerLoggedInEvent event ) {
         if( event.getEntity() instanceof ServerPlayer player ) {
+            // Send config sync packet to client
             Config.MAIN.sendSyncPacket( player );
+            
+            // Refresh or add the base inspection range modifier to the player
+            final Attribute attribute = CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get();
+            final AttributeInstance instance = player.getAttribute( attribute );
+            final AttributeModifier modifier = AttributeModUtil.getBaseInspectionRangeMod();
+            
+            if( player.getAttributes().hasModifier( attribute, modifier.getId() ) ) {
+                instance.removePermanentModifier( modifier.getId() );
+            }
+            instance.addPermanentModifier( modifier );
+        }
+    }
+    
+    /**
+     * Called when the attributes for an item stack are being calculated.
+     *
+     * @param event The event data.
+     */
+    // TODO - Unfortunately this event doesn't provide entity
+    //        context, so we have no way of checking modifiers of items in other slots.
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    public static void onModifyItemAttributes( ItemAttributeModifierEvent event ) {
+        final Item item = event.getItemStack().getItem();
+        final EquipmentSlot slot = event.getSlotType();
+        
+        // Spyglass
+        if( item == Items.SPYGLASS && (slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND) ) {
+            if( !event.getModifiers().containsValue( AttributeModUtil.getSpyglassInspectionRangeMod() ) ) {
+                event.addModifier( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.getSpyglassInspectionRangeMod() );
+            }
         }
     }
     
@@ -54,7 +92,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onLevelTick( TickEvent.LevelTickEvent event ) {
+    public static void onLevelTick( TickEvent.LevelTickEvent event ) {
         if( event.phase == TickEvent.Phase.END ) {
             // Remove expired and OBE pings
             PingManager manager = PingManager.get( event.level );
@@ -73,7 +111,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onServerStopped( ServerStoppedEvent event ) {
+    public static void onServerStopped( ServerStoppedEvent event ) {
         PingManager.reset();
     }
     
@@ -84,8 +122,9 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onLivingAttack( LivingAttackEvent event ) {
+    public static void onLivingAttack( LivingAttackEvent event ) {
         LivingEntity entity = event.getEntity();
+        // noinspection resource
         if( !entity.level().isClientSide() ) {
             if( entity instanceof Player player && FriendlyFireHelper.shouldCancelDamage( player, event.getSource() ) ) {
                 event.setCanceled( true );
@@ -102,8 +141,9 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onLivingHurt( LivingHurtEvent event ) {
+    public static void onLivingHurt( LivingHurtEvent event ) {
         LivingEntity entity = event.getEntity();
+        // noinspection resource
         if( !entity.level().isClientSide() ) {
             if( entity instanceof Player player && FriendlyFireHelper.isFriendlyFire( player, event.getSource() ) ) {
                 event.setAmount( event.getAmount() * Config.MAIN.GENERAL.friendlyFireMulti.getFloat() );
@@ -117,7 +157,7 @@ public final class GameEventHandler {
     //     * @param event The event data.
     //     */
     //    @SubscribeEvent( priority = EventPriority.LOWEST )
-    //    static void onLivingDeath( LivingDeathEvent event ) {
+    //    public static void onLivingDeath( LivingDeathEvent event ) {
     //        if( event.isCanceled() || event.getEntity().level().isClientSide() ) return;
     //
     //        if( Config.MAIN.GENERAL.reviveEnabled.get() && event.getEntity() instanceof ServerPlayer player ) {
@@ -132,7 +172,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onEntityPlaceBlock( BlockEvent.EntityPlaceEvent event ) {
+    public static void onEntityPlaceBlock( BlockEvent.EntityPlaceEvent event ) {
         //if( event.isCanceled() || !(event.getLevel() instanceof ServerLevel level) ) return;
         //TODO Some chunk protection goes here?
     }
@@ -149,7 +189,7 @@ public final class GameEventHandler {
      */
     @SuppressWarnings( "JavadocReference" )
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onEntityJoinLevel( EntityJoinLevelEvent event ) {
+    public static void onEntityJoinLevel( EntityJoinLevelEvent event ) {
         if( event.isCanceled() ) return;
         
         if( event.getLevel() instanceof ServerLevel level && event.getEntity() instanceof ServerPlayer player ) {
@@ -164,7 +204,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onBlockBreak( BlockEvent.BreakEvent event ) {
+    public static void onBlockBreak( BlockEvent.BreakEvent event ) {
         //if( event.isCanceled() || !(event.getLevel() instanceof ServerLevel level) ) return;
         //TODO Some chunk protection goes here?
     }
@@ -175,7 +215,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onRightClickContainer( PlayerInteractEvent.RightClickBlock event ) {
+    public static void onRightClickContainer( PlayerInteractEvent.RightClickBlock event ) {
         //TODO Some chunk protection goes here?
     }
     
@@ -185,7 +225,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onEntityInteract( PlayerInteractEvent.EntityInteract event ) {
+    public static void onEntityInteract( PlayerInteractEvent.EntityInteract event ) {
         //if( event.isCanceled() || !(event.getLevel() instanceof ServerLevel level) ) return;
         //TODO Some chunk protection goes here?
     }
@@ -199,7 +239,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onBlockAboutToBreak( BlockEvent.BreakEvent event ) {
+    public static void onBlockAboutToBreak( BlockEvent.BreakEvent event ) {
         //TODO Some chunk protection goes here?
     }
     
@@ -209,7 +249,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onChunkDataLoad( ChunkDataEvent.Load event ) {
+    public static void onChunkDataLoad( ChunkDataEvent.Load event ) {
         //TODO load chunk data
     }
     
@@ -219,7 +259,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onChunkDataSave( ChunkDataEvent.Save event ) {
+    public static void onChunkDataSave( ChunkDataEvent.Save event ) {
         //TODO save chunk data
     }
     
@@ -229,7 +269,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onChunkUnload( ChunkEvent.Unload event ) {
+    public static void onChunkUnload( ChunkEvent.Unload event ) {
         if( !event.getLevel().isClientSide() ) {
             //TODO forget chunk data
         }
@@ -241,7 +281,7 @@ public final class GameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onLevelUnload( LevelEvent.Unload event ) {
+    public static void onLevelUnload( LevelEvent.Unload event ) {
         if( !event.getLevel().isClientSide() ) {
             //TODO forget all chunk data
         }

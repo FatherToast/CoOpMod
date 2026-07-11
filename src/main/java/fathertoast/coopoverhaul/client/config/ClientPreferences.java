@@ -67,7 +67,6 @@ public class ClientPreferences extends AbstractConfigFile {
                     "How far you can inspect and ping blocks/entities from, in blocks.",
                     "Leaving this at a very high value effectively just sets your range to the max allowed by the " +
                             "server or to your render distance, whichever is lower." ) );
-            SPEC.callback( InspectManager::updateRange );
             
             SPEC.newLine();
             

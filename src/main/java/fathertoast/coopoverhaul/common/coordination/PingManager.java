@@ -1,5 +1,6 @@
 package fathertoast.coopoverhaul.common.coordination;
 
+import fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects;
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.network.PacketHandler;
 import fathertoast.coopoverhaul.common.network.message.*;
@@ -246,23 +247,25 @@ public class PingManager {
     }
     
     private static boolean isEntityTooFar( ServerPlayer player, Entity entity ) {
-        double range = Config.MAIN.GENERAL.maxInspectRange.get() + 2.0;
+        double range = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
+        double maxRange = Math.min( range, Config.MAIN.GENERAL.maxInspectRange.get() ) + 2.0;
         Vec3 eyePos = player.getEyePosition( 1.0F );
         AABB entityBB = entity.getBoundingBox();
         double dX = Math.min( Math.abs( entityBB.minX - eyePos.x ), Math.abs( entityBB.maxX - eyePos.x ) );
         double dY = Math.min( Math.abs( entityBB.minY - eyePos.y ), Math.abs( entityBB.maxY - eyePos.y ) );
         double dZ = Math.min( Math.abs( entityBB.minZ - eyePos.z ), Math.abs( entityBB.maxZ - eyePos.z ) );
         //TODO maybe log this, seems sus
-        return dX * dX + dY * dY + dZ * dZ > range * range;
+        return dX * dX + dY * dY + dZ * dZ > maxRange * maxRange;
     }
     
     private static boolean isBlockTooFar( ServerPlayer player, BlockPos blockPos ) {
-        double range = Config.MAIN.GENERAL.maxInspectRange.get() + 2.0;
+        double range = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
+        double maxRange = Math.min( range, Config.MAIN.GENERAL.maxInspectRange.get() ) + 2.0;
         Vec3 eyePos = player.getEyePosition( 1.0F );
         double dX = blockPos.getX() + 0.5 - eyePos.x;
         double dY = blockPos.getY() + 0.5 - eyePos.y;
         double dZ = blockPos.getZ() + 0.5 - eyePos.z;
         //TODO maybe log this, seems sus
-        return dX * dX + dY * dY + dZ * dZ > range * range;
+        return dX * dX + dY * dY + dZ * dZ > maxRange * maxRange;
     }
 }

@@ -2,10 +2,11 @@ package fathertoast.coopoverhaul.common.core;
 
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.network.PacketHandler;
+import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.javafmlmod.FMLModContainer;
@@ -82,19 +83,14 @@ public final class CoOpOverhaulMod {
         
         IEventBus eventBus = context.getModEventBus();
         
-        eventBus.addListener( this::onCommonSetup );
         eventBus.addListener( this::onInterModEnqueue );
         
-        COSoundEvents.register( eventBus );
+        MinecraftForge.EVENT_BUS.addListener( AttributeModUtil::onServerStarted );
         
         Config.initializeEarly();
-        //        DeferredWorkQueue.lookup( Optional.of( ModLoadingStage.ENQUEUE_IMC ) ).ifPresent(
-        //                ( workQueue ) -> workQueue.enqueueWork( CONTAINER, something)
-        //        );
-    }
-    
-    public void onCommonSetup( FMLCommonSetupEvent event ) {
-        event.enqueueWork( Config::initialize );
+        
+        COSoundEvents.register( eventBus );
+        CMAttributes.register( eventBus );
     }
     
     public void onInterModEnqueue( InterModEnqueueEvent event ) {

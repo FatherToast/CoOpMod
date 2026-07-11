@@ -6,10 +6,7 @@ import fathertoast.coopoverhaul.common.protection.FriendlyFireHelper;
 import fathertoast.crust.api.config.common.AbstractConfigCategory;
 import fathertoast.crust.api.config.common.AbstractConfigFile;
 import fathertoast.crust.api.config.common.ConfigManager;
-import fathertoast.crust.api.config.common.field.BooleanField;
-import fathertoast.crust.api.config.common.field.DoubleField;
-import fathertoast.crust.api.config.common.field.EnumField;
-import fathertoast.crust.api.config.common.field.IntField;
+import fathertoast.crust.api.config.common.field.*;
 import fathertoast.crust.api.config.common.file.TomlHelper;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -31,7 +28,9 @@ public class MainConfig extends AbstractConfigFile {
     /** Generated a sync packet for this config. Only send fields the client actually needs. */
     private ClientboundMainConfigSyncPacket makeSyncPacket() {
         return new ClientboundMainConfigSyncPacket(
+                GENERAL.defaultInspectRange.get(),
                 GENERAL.maxInspectRange.get(),
+                GENERAL.spyglassInspectRange.get(),
                 GENERAL.allowRecoloringHidden.get(),
                 GENERAL.maxFindPlayersRange.get(),
                 GENERAL.pingDuration.get(),
@@ -49,7 +48,10 @@ public class MainConfig extends AbstractConfigFile {
         
         //        public final BooleanField reviveEnabled;
         
+        public final DoubleField defaultInspectRange;
         public final DoubleField maxInspectRange;
+        public final DoubleField spyglassInspectRange;
+        
         public final BooleanField allowRecoloringHidden;
         public final DoubleField maxFindPlayersRange;
         
@@ -84,10 +86,20 @@ public class MainConfig extends AbstractConfigFile {
             
             SPEC.newLine();
             
-            maxInspectRange = SPEC.define( new DoubleField( "max_inspect_range",
+            defaultInspectRange = SPEC.define( new DoubleField( "inspect_range.default",
                     32.0, DoubleField.Range.NON_NEGATIVE,
                     "How far players are allowed to inspect and ping blocks/entities from, in blocks.",
+                    "This is the default/base range that players have without any modifiers from equipment, such as a spyglass." ), RestartNote.WORLD );
+            maxInspectRange = SPEC.define( new DoubleField( "inspect_range.max",
+                    128.0, DoubleField.Range.NON_NEGATIVE,
+                    "The absolute maximum inspect and ping distance from all sources (base value and modifiers), in blocks.",
                     "Setting this to 0 completely disables both the 'inspect' and 'ping' features." ) );
+            spyglassInspectRange = SPEC.define( new DoubleField( "inspect_range.spyglass_modifier",
+                    96.0, DoubleField.Range.NON_NEGATIVE,
+                    "The additional amount of inspection range gained by holding/using a spyglass." ), RestartNote.WORLD );
+            
+            SPEC.newLine();
+            
             allowRecoloringHidden = SPEC.define( new BooleanField( "allow_recoloring_hidden", false,
                     "When enabled, allows players to recolor highlights for normally hidden blocks, " +
                             "like silverfish-infested blocks." ) );

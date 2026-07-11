@@ -19,10 +19,9 @@ public class Config {
      * Called by the mod's constructor.
      */
     public static void initializeEarly() {
+        MAIN.SPEC.initialize();
     }
     
     /** Performs loading of configs in this mod. Added to deferred work queue at common setup. */
-    public static void initialize() {
-        MAIN.SPEC.initialize();
-    }
+    public static void initialize() { }
 }

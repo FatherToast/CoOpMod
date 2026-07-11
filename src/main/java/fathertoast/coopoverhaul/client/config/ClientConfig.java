@@ -4,6 +4,7 @@ import fathertoast.coopoverhaul.client.coordination.FindPlayersManager;
 import fathertoast.coopoverhaul.client.coordination.InspectManager;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.network.message.ClientboundMainConfigSyncPacket;
+import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import fathertoast.crust.api.config.common.ConfigManager;
 
 /**
@@ -37,9 +38,9 @@ public class ClientConfig {
     
     /** Updates all fields set by the logical server. */
     public static void sync( ClientboundMainConfigSyncPacket message ) {
+        AttributeModUtil.syncModifiers( message );
         // Inspect feature
         maxInspectRange = message.maxInspectRange();
-        InspectManager.updateRange();
         // Ping feature
         pingDuration = message.pingDuration();
         pingCooldown = message.pingCooldown();
