@@ -1,0 +1,18 @@
+{
+  "required": false,
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "refmap": "coopoverhaul.refmap.json",
+  "package": "fathertoast.coopoverhaul.common.mixin",
+  "mixins": [
+  ],
+  "client": [
+    "EntityMixin",
+    "LevelRendererMixin",
+    "MinecraftMixin"
+  ],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

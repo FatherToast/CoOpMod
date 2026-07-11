@@ -18,8 +18,8 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: "org.spongepowered.mixin"
 
 mixin {
-    add sourceSets.main, "coopmod.refmap.json"
-    config "coopmod.mixins.json"
+    add sourceSets.main, "coopoverhaul.refmap.json"
+    config "coopoverhaul.mixins.json"
 
     debug.verbose = true
     debug.export = true
@@ -28,7 +28,7 @@ mixin {
 
 // The mod's version and id
 version = "${mc_version}-${mod_version}"
-archivesBaseName = 'coopmod'
+archivesBaseName = 'coopoverhaul'
 group = "fathertoast.${archivesBaseName}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
@@ -46,7 +46,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                coopmod {
+                coopoverhaul {
                     source sourceSets.main
                     source sourceSets.test
                 }
@@ -57,22 +57,22 @@ minecraft {
             property "mixin.debug.export", "true"
             property 'mixin.env.disableRefMap', 'true'
 
-            args "-mixin.config=coopmod.mixins.json", "--username", "FatherToast"
+            args "-mixin.config=coopoverhaul.mixins.json", "--username", "FatherToast"
         }
 
         server {
             property "mixin.debug.export", "true"
             property 'mixin.env.disableRefMap', 'true'
 
-            arg "-mixin.config=coopmod.mixins.json"
+            arg "-mixin.config=coopoverhaul.mixins.json"
         }
 
         gameTestServer {
-            property 'forge.enabledGameTestNamespaces', 'coopmod'
+            property 'forge.enabledGameTestNamespaces', 'coopoverhaul'
         }
 
         data {
-            args '--mod', 'coopmod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'coopoverhaul', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
         }
     }
 }
@@ -115,14 +115,14 @@ dependencies {
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "Co-Op Mod",
+                "Specification-Title"     : "Co-Op Overhaul",
                 "Specification-Vendor"    : "FatherToast",
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : "${version}",
                 "Implementation-Vendor"   : "FatherToast",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                "MixinConfigs"            : "coopmod.mixins.json"
+                "MixinConfigs"            : "coopoverhaul.mixins.json"
         ])
     }
 }

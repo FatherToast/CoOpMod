@@ -1,17 +1,17 @@
 modLoader = "javafml"
 loaderVersion = "[47,)"
 license = "GNU General Public License v3.0"
-issueTrackerURL = "https://github.com/FatherToast/CoOpMod/issues/"
+issueTrackerURL = "https://github.com/FatherToast/CoOpOverhaul/issues/"
 
 [[mods]]
 logoFile = "banner.png"
-authors = "Father Toast"
-credits = "Sarinsa, Mother Toast, & Baby Toast"
+authors = "Father Toast & Sarinsa"
+credits = "Mother Toast & Baby Toast"
 version = "${file.jarVersion}"
-displayName = "The Co-Op Mod"
-modId = "coopmod"
+displayName = "Co-Op Overhaul"
+modId = "coopoverhaul"
 description = '''
-The Co-Op Mod provides several features to improve co-operative online play, such as pinging and protections for friendly fire and chunks.
+Co-Op Overhaul provides several features to improve co-operative online play, such as pinging and protections for friendly fire and chunks.
 
 This mod is highly configurable and most features has at least one config option associated with it.
 Browsing the configs will provide information on all the mod's features. If more in-depth information is needed, ask in the Discord server.
@@ -24,28 +24,28 @@ Source: https://github.com/FatherToast/
 Discussion: https://discord.gg/GFTzTdX/
 '''
 
-[[dependencies.coopmod]]
+[[dependencies.coopoverhaul]]
 modId = "forge"
 mandatory = true
 versionRange = "[47.4,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.coopmod]]
+[[dependencies.coopoverhaul]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.20.1]"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.coopmod]]
+[[dependencies.coopoverhaul]]
 modId = "crust"
 mandatory = true
 versionRange = "[4.17.28,)"
 ordering = "BEFORE"
 side = "BOTH"
 
-[[dependencies.coopmod]]
+[[dependencies.coopoverhaul]]
 modId = "jade"
 mandatory = false
 versionRange = "[11.13.2,)"
