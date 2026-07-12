@@ -88,6 +88,10 @@ repositories {
             includeGroup 'curse.maven'
         }
     }
+    maven {
+        name 'BlameJared'
+        url "https://maven.blamejared.com"
+    }
     flatDir {
         dir 'flat_deps'
     }
@@ -108,6 +112,9 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:jei-238222:${jei_version}")
     runtimeOnly fg.deobf("curse.maven:jer-240630:${jer_version}")
     implementation fg.deobf("curse.maven:jade-324717:${jade_version}")
+
+    // Add Embeddium to ensure all rendering-related things added by this mod works nicely alongside it
+    implementation fg.deobf("org.embeddedt:embeddium-1.20.1:${embeddium_version}")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
