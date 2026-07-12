@@ -21,7 +21,7 @@ public final class ModEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent
-    public static void onCommonSetup( FMLCommonSetupEvent event ) { }
+    public static void onCommonSetup( FMLCommonSetupEvent event ) {}
     
     /**
      * Called when other mods can safely add attributes to existing entity types.
@@ -30,7 +30,7 @@ public final class ModEventHandler {
      */
     @SubscribeEvent
     public static void onAttributeModification( EntityAttributeModificationEvent event ) {
-        event.add( EntityType.PLAYER, CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
+        event.add( EntityType.PLAYER, CoOpOverhaulObjects.Attributes.INSPECT_RANGE.get() );
     }
     
     /**
@@ -39,5 +39,5 @@ public final class ModEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent
-    public static void onRegisterSpawnPlacement( SpawnPlacementRegisterEvent event ) { }
+    public static void onRegisterSpawnPlacement( SpawnPlacementRegisterEvent event ) {}
 }

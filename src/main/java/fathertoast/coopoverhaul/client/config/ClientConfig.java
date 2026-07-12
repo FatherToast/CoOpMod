@@ -1,7 +1,6 @@
 package fathertoast.coopoverhaul.client.config;
 
 import fathertoast.coopoverhaul.client.coordination.FindPlayersManager;
-import fathertoast.coopoverhaul.client.coordination.InspectManager;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.network.message.ClientboundMainConfigSyncPacket;
 import fathertoast.coopoverhaul.common.util.AttributeModUtil;
@@ -38,9 +37,9 @@ public class ClientConfig {
     
     /** Updates all fields set by the logical server. */
     public static void sync( ClientboundMainConfigSyncPacket message ) {
-        AttributeModUtil.syncModifiers( message );
         // Inspect feature
         maxInspectRange = message.maxInspectRange();
+        AttributeModUtil.updateClientModifiers( message );
         // Ping feature
         pingDuration = message.pingDuration();
         pingCooldown = message.pingCooldown();

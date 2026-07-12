@@ -36,6 +36,7 @@ import java.util.function.Consumer;
 
 /**
  * @see net.minecraftforge.client.gui.overlay.VanillaGuiOverlay
+ * @see ForgeGui
  */
 public final class PartyStatusGuiOverlay {
     
@@ -74,7 +75,8 @@ public final class PartyStatusGuiOverlay {
     public static void render( ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight ) {
         Minecraft client = gui.getMinecraft();
         ClientPreferences.PartyOverlay config = ClientConfig.PREFS.PARTY_OVERLAY;
-        if( client.options.hideGui || !config.enabled.get() || client.level == null || client.player == null ) return;
+        if( client.options.hideGui || !config.enabled.get() || client.level == null || client.player == null ||
+                config.hideWhenDebugOn.get() && client.options.renderDebug ) return;
         
         List<Entry> players = client.player.connection.getListedOnlinePlayers().stream()
                 .mapMulti( PartyStatusGuiOverlay::mapPlayer ).sorted( PLAYER_COMPARATOR ).limit( 16 ).toList();
@@ -178,6 +180,7 @@ public final class PartyStatusGuiOverlay {
                     // "angleXComponent" rotates on the +Y axis (looking from the top of the screen, clockwise)
                     // "angleYComponent" rotates on the -X axis (looking from the left side of the screen, anti-clockwise)
                     // Units are in degrees and the method multiplies these angles by 20 (head angle multiplied by 40)
+                    //TODO fix walk/run/swim animations freezing when players are culled by the frustum
                     InventoryScreen.renderEntityInInventoryFollowsAngle( guiGraphics, x + offsetX, y + offsetY,
                             modelScale, -1.0F, -0.2F, entry.player() );
                 }

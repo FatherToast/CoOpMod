@@ -30,6 +30,8 @@ public final class InspectManager {
     
     /** True while the player is using inspect mode. */
     private static boolean enabled;
+    /** True while the player is scoped. */
+    private static boolean scoped;
     
     /** The current inspect target. Null if we have no target. Will never have a type of HitResult.Type.MISS. */
     @Nullable
@@ -45,11 +47,14 @@ public final class InspectManager {
     public static void setEnabled( boolean on ) { enabled = on; }
     
     /** @return Whether "inspect" mode is on or off. */
-    public static boolean isEnabled() { return enabled; }
+    public static boolean isEnabled() { return enabled || scoped; }
+    
+    /** @return True when the "inspect while scoping" option is on and the player is scoping. */
+    public static boolean isScoped() { return scoped; }
     
     /** Retrieves the inspection range attribute value of the given player, capped by the configured maximum. */
     public static double getInspectRange( Player player ) {
-        double value = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
+        double value = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECT_RANGE.get() );
         return Math.min( value, ClientConfig.getMaxInspectRange() );
     }
     
@@ -58,7 +63,7 @@ public final class InspectManager {
      * Null if not inspecting anything at the moment (not active or ray cast miss).
      */
     @Nullable
-    public static HitResult target() { return enabled ? target : null; }
+    public static HitResult target() { return isEnabled() ? target : null; }
     
     /** Called every render frame. Updates the current inspection target and inspection highlights. */
     public static void updateTarget( Minecraft client, LocalPlayer player, ClientLevel level, float partialTick ) {
@@ -66,7 +71,9 @@ public final class InspectManager {
         HighlightManager.getInspectBlocks().clear();
         final double range = getInspectRange( player );
         
-        if( !enabled || range <= 0.0 || player.isSpectator() ) {
+        scoped = ClientConfig.PREFS.INSPECT.whileScoped.get() && player.isScoping();
+        
+        if( !isEnabled() || range <= 0.0 || player.isSpectator() ) {
             target = null;
         }
         else {
@@ -149,7 +156,7 @@ public final class InspectManager {
     private static boolean canTarget( Entity entity, LocalPlayer player, EntityRenderDispatcher renderDispatcher ) {
         return !entity.isSpectator() && !entity.isRemoved() && !entity.isInvisibleTo( player ) &&
                 !(renderDispatcher.getRenderer( entity ) instanceof NoopRenderer) &&
-                (entity.canRiderInteract() || !entity.isPassengerOfSameVehicle( player ));
+                !entity.isPassengerOfSameVehicle( player );
     }
     
     /** Minimum bounding box size applied in each axis to make inspecting very small entities easier. */
@@ -176,5 +183,5 @@ public final class InspectManager {
     }
     
     
-    private InspectManager() { }
+    private InspectManager() {}
 }

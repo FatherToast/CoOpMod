@@ -35,7 +35,7 @@ public final class ClientModEventHandler {
     /** Registers this mod's GUI overlays. */
     @SubscribeEvent
     static void onRegisterGuiOverlays( RegisterGuiOverlaysEvent event ) {
-        event.registerBelow( VanillaGuiOverlay.SCOREBOARD.id(), "party_status",
+        event.registerAbove( VanillaGuiOverlay.ITEM_NAME.id(), "party_status",
                 PartyStatusGuiOverlay::render );
     }
 }

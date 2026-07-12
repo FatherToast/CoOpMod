@@ -61,7 +61,7 @@ public final class ClientGameEventHandler {
             Minecraft client = Minecraft.getInstance();
             if( client.level == null ) return;
             
-            if( ClientConfig.PREFS.INSPECTION.nameplateSize.get() > 0.0 ) {
+            if( ClientConfig.PREFS.INSPECT.nameplateSize.get() > 0.0 ) {
                 HighlightManager.renderNameplates( client, client.level, event.getLevelRenderer(), event.getPoseStack(),
                         event.getProjectionMatrix(), event.getRenderTick(), event.getPartialTick(), event.getCamera(), event.getFrustum() );
             }

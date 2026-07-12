@@ -13,9 +13,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -53,16 +50,6 @@ public final class GameEventHandler {
         if( event.getEntity() instanceof ServerPlayer player ) {
             // Send config sync packet to client
             Config.MAIN.sendSyncPacket( player );
-            
-            // Refresh or add the base inspection range modifier to the player
-            final Attribute attribute = CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get();
-            final AttributeInstance instance = player.getAttribute( attribute );
-            final AttributeModifier modifier = AttributeModUtil.getBaseInspectionRangeMod();
-            
-            if( player.getAttributes().hasModifier( attribute, modifier.getId() ) ) {
-                instance.removePermanentModifier( modifier.getId() );
-            }
-            instance.addPermanentModifier( modifier );
         }
     }
     
@@ -80,8 +67,9 @@ public final class GameEventHandler {
         
         // Spyglass
         if( item == Items.SPYGLASS && (slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND) ) {
-            if( !event.getModifiers().containsValue( AttributeModUtil.getSpyglassInspectionRangeMod() ) ) {
-                event.addModifier( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get(), AttributeModUtil.getSpyglassInspectionRangeMod() );
+            if( !event.getModifiers().containsValue( AttributeModUtil.getSpyglassInspectRangeMod() ) ) {
+                event.addModifier( CoOpOverhaulObjects.Attributes.INSPECT_RANGE.get(),
+                        AttributeModUtil.getSpyglassInspectRangeMod() );
             }
         }
     }
@@ -193,6 +181,10 @@ public final class GameEventHandler {
         if( event.isCanceled() ) return;
         
         if( event.getLevel() instanceof ServerLevel level && event.getEntity() instanceof ServerPlayer player ) {
+            // Refresh or add all base modifiers to the player
+            AttributeModUtil.updateModifiers( player );
+            
+            // Tell them about any pings currently active in the world
             PingManager.onPlayerJoinServerLevel( level, player );
         }
     }

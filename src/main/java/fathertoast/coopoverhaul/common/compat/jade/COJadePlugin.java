@@ -34,7 +34,7 @@ public class COJadePlugin implements IWailaPlugin {
         @Nullable
         public Accessor<?> onRayTrace( HitResult hitResult, @Nullable Accessor<?> accessor,
                                        @Nullable Accessor<?> originalAccessor ) {
-            return switch( ClientConfig.PREFS.INSPECTION.jadeMode.get() ) {
+            return switch( ClientConfig.PREFS.INSPECT.jadeMode.get() ) {
                 // Off; don't change the tooltip at all
                 case OFF -> accessor;
                 // Backup; only add a tooltip if there isn't already a tooltip to display

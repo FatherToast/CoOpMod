@@ -13,6 +13,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.OutlineBufferSource;
@@ -30,6 +31,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.item.SpyglassItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.InfestedBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -214,6 +216,9 @@ public final class HighlightManager {
         //        poseStack.mulPose( Axis.YP.rotationDegrees( camera.getYRot() + 180.0F ) );
         MultiBufferSource.BufferSource bufferSource = client.renderBuffers().bufferSource();
         
+        float baseScale = ClientConfig.PREFS.INSPECT.nameplateSize.getFloat() *
+                (isScoping( camera ) ? SpyglassItem.ZOOM_FOV_MODIFIER : 1.0F);
+        
         //TODO Perhaps combine entity stacks into one combined nameplate, similar to how multi-block pings work
         
         // Render player nameplates
@@ -225,7 +230,7 @@ public final class HighlightManager {
                 if( FindPlayersManager.shouldHighlight( player ) ) {
                     Vec3 pos = player.getPosition( partialTick );
                     renderNameplate( client, player.getDisplayName(), poseStack, bufferSource,
-                            camera, pos.x, pos.y + player.getNameTagOffsetY(), pos.z );
+                            camera, baseScale, pos.x, pos.y + player.getNameTagOffsetY(), pos.z );
                     renderedPlayers.add( player.getId() );
                 }
             }
@@ -245,7 +250,7 @@ public final class HighlightManager {
                         : entity.getDisplayName();
                 
                 renderNameplate( client, name, poseStack, bufferSource,
-                        camera, pos.x, pos.y + entity.getNameTagOffsetY(), pos.z );
+                        camera, baseScale, pos.x, pos.y + entity.getNameTagOffsetY(), pos.z );
             }
         }
         
@@ -257,12 +262,18 @@ public final class HighlightManager {
             if( offset != null ) {
                 Component name = Component.translatable( I18n.get( block.getBlock().getDescriptionId() ) );
                 renderNameplate( client, name, poseStack, bufferSource,
-                        camera, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z );
+                        camera, baseScale, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z );
             }
         }
         
         // In case we swap back to rendering AFTER_LEVEL
         //        RenderSystem.applyModelViewMatrix();
+    }
+    
+    /** @return True if the camera is zoomed in by a scope. */
+    private static boolean isScoping( Camera camera ) {
+        return Minecraft.getInstance().options.getCameraType().isFirstPerson() &&
+                camera.getEntity() instanceof LocalPlayer player && player.isScoping();
     }
     
     /** @return The nameplate position offset to apply for the block, or null if no nameplate should be rendered. */
@@ -298,17 +309,15 @@ public final class HighlightManager {
     
     /** Renders a nameplate at the given position. */
     private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource bufferSource,
-                                         Camera camera, double x, double y, double z ) {
+                                         Camera camera, float baseScale, double x, double y, double z ) {
         poseStack.pushPose();
         Vec3 cameraPos = camera.getPosition();
         Vector3f cameraUpVec = camera.getUpVector();
-        float scale = ClientConfig.PREFS.INSPECTION.nameplateSize.getFloat() *
-                (float) Math.sqrt( cameraPos.distanceToSqr( x, y, z ) );
+        float scale = baseScale * (float) Math.sqrt( cameraPos.distanceToSqr( x, y, z ) );
         poseStack.translate( x - cameraPos.x + 0.5F * cameraUpVec.x,
                 y - cameraPos.y + 0.5F * cameraUpVec.y,
                 z - cameraPos.z + 0.5F * cameraUpVec.z );
         poseStack.mulPose( camera.rotation() );
-        //TODO scale smaller when zoomed in with a spyglass
         poseStack.scale( -scale, -scale, scale );
         
         Matrix4f pose = poseStack.last().pose();

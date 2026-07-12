@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ClientPreferences extends AbstractConfigFile {
     
-    public final Inspection INSPECTION;
+    public final Inspect INSPECT;
     public final PlayerFinder PLAYER_FINDER;
     public final PartyOverlay PARTY_OVERLAY;
     public final HighlightSettings HIGHLIGHT_SETTINGS;
@@ -38,7 +38,7 @@ public class ClientPreferences extends AbstractConfigFile {
         super( manager, fileName,
                 "This config contains personal preference settings." );
         
-        INSPECTION = new Inspection( this );
+        INSPECT = new Inspect( this );
         PLAYER_FINDER = new PlayerFinder( this );
         PARTY_OVERLAY = new PartyOverlay( this );
         HIGHLIGHT_SETTINGS = new HighlightSettings( this );
@@ -47,28 +47,28 @@ public class ClientPreferences extends AbstractConfigFile {
         SPEC.callback( KeyBindingEvents::updateKeyMode );
     }
     
-    public static class Inspection extends AbstractConfigCategory<ClientPreferences> {
+    public static class Inspect extends AbstractConfigCategory<ClientPreferences> {
         
-        public final DoubleField range;
+        //        public final DoubleField range;
         
         public final DoubleField nameplateSize;
         
-        //TODO add option to enable inspect mode when zoomed in with a spyglass
         public final EnumField<KeyBindingEvents.Mode> keyMode;
+        public final BooleanField whileScoped;
         
         public final EnumField<COJadePlugin.Mode> jadeMode;
         
-        Inspection( ClientPreferences parent ) {
+        Inspect( ClientPreferences parent ) {
             super( parent, "inspect",
                     "Options to customize the 'inspect' and 'ping' functions." );
             
-            range = SPEC.define( new DoubleField( "range",
-                    3.4e38, DoubleField.Range.NON_NEGATIVE,
-                    "How far you can inspect and ping blocks/entities from, in blocks.",
-                    "Leaving this at a very high value effectively just sets your range to the max allowed by the " +
-                            "server or to your render distance, whichever is lower." ) );
-            
-            SPEC.newLine();
+            //            range = SPEC.define( new DoubleField( "range",
+            //                    3.4e38, DoubleField.Range.NON_NEGATIVE,
+            //                    "How far you can inspect and ping blocks/entities from, in blocks.",
+            //                    "Leaving this at a very high value effectively just sets your range to the max allowed by the " +
+            //                            "server or to your render distance, whichever is lower." ) );
+            //
+            //            SPEC.newLine();
             
             nameplateSize = SPEC.define( new ScaledDoubleField( "ping_nameplate_size",
                     1.0, 0.025 * 0.15, DoubleField.Range.NON_NEGATIVE,
@@ -80,6 +80,8 @@ public class ClientPreferences extends AbstractConfigFile {
             keyMode = SPEC.define( new EnumField<>( "key_mode", KeyBindingEvents.Mode.HOLD,
                     "How the inspect key bind behaves. The key itself is bound in the game's options " +
                             "(Options > Controls > Key Binds)." ) );
+            whileScoped = SPEC.define( new BooleanField( "while_scoped", true,
+                    "If true, inspect will be active while scoped in with a spyglass." ) );
             
             SPEC.newLine();
             
@@ -129,6 +131,7 @@ public class ClientPreferences extends AbstractConfigFile {
     public static class PartyOverlay extends AbstractConfigCategory<ClientPreferences> {
         
         public final BooleanField enabled;
+        public final BooleanField hideWhenDebugOn;
         
         public final DoubleField rangeSq;//for now, since there's no party system yet
         public final BooleanField showSelf;
@@ -156,6 +159,9 @@ public class ClientPreferences extends AbstractConfigFile {
             
             enabled = SPEC.define( new BooleanField( "enabled", true,
                     "Whether the party overlay should be displayed." ) );
+            hideWhenDebugOn = SPEC.define( new BooleanField( "hide_when_debug_on", true,
+                    "If true, the party overlay will not be displayed while you have the debug info " +
+                            "active (F3)." ) );
             
             SPEC.newLine();
             

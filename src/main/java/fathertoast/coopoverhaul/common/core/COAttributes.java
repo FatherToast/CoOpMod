@@ -10,14 +10,14 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Objects;
 
-import static fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects.Attributes.INSPECTION_RANGE;
+import static fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects.Attributes.INSPECT_RANGE;
 
 public final class COAttributes {
     
     private static final DeferredRegister<Attribute> REGISTRY = DeferredRegister.create( ForgeRegistries.ATTRIBUTES, CoOpOverhaulMod.MOD_ID );
     
     static {
-        register( INSPECTION_RANGE, true, 0.0, 0.0, 2048.0 );
+        register( INSPECT_RANGE, true, 0.0, 0.0, 2048.0 );
     }
     
     /** Called to register this class. */

@@ -39,7 +39,7 @@ public final class KeyBindingEvents {
     
     /** Updates the key bind state based on current settings. */
     public static void updateKeyMode() {
-        switch( ClientConfig.PREFS.INSPECTION.keyMode.get() ) {
+        switch( ClientConfig.PREFS.INSPECT.keyMode.get() ) {
             case HOLD -> InspectManager.disable();
             case ALWAYS_ON -> InspectManager.enable();
         }
@@ -83,15 +83,19 @@ public final class KeyBindingEvents {
             if( action == GLFW.GLFW_PRESS ) {
                 // Key pressed
                 if( isActive( key, INSPECT ) ) {
-                    switch( ClientConfig.PREFS.INSPECTION.keyMode.get() ) {
+                    switch( ClientConfig.PREFS.INSPECT.keyMode.get() ) {
                         case HOLD -> InspectManager.enable();
                         case TOGGLE -> InspectManager.setEnabled( !InspectManager.isEnabled() );
                     }
                 }
                 else if( isActive( key, PING ) ) {
-                    if( InspectManager.isEnabled() ) {
+                    if( InspectManager.isScoped() ) {
                         if( InspectManager.target() != null ) ClientPingHelper.ping();
-                        if( ClientConfig.PREFS.INSPECTION.keyMode.get() == Mode.HOLD ) return true;
+                        return true;
+                    }
+                    else if( InspectManager.isEnabled() ) {
+                        if( InspectManager.target() != null ) ClientPingHelper.ping();
+                        if( ClientConfig.PREFS.INSPECT.keyMode.get() == Mode.HOLD ) return true;
                     }
                 }
                 else if( isActive( key, QUICK_PING ) ) {
@@ -107,7 +111,7 @@ public final class KeyBindingEvents {
             else if( action == GLFW.GLFW_RELEASE ) {
                 // Key released
                 if( isActive( key, INSPECT ) ) {
-                    if( ClientConfig.PREFS.INSPECTION.keyMode.get() == Mode.HOLD ) InspectManager.disable();
+                    if( ClientConfig.PREFS.INSPECT.keyMode.get() == Mode.HOLD ) InspectManager.disable();
                 }
                 if( isActive( key, FIND_PLAYERS ) ) {
                     if( ClientConfig.PREFS.PLAYER_FINDER.keyMode.get() == Mode.HOLD ) FindPlayersManager.delayDisable();

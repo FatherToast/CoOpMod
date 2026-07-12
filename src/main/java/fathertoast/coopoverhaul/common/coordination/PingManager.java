@@ -253,7 +253,7 @@ public class PingManager {
     }
     
     private static boolean isEntityTooFar( ServerPlayer player, Entity entity ) {
-        double range = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
+        double range = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECT_RANGE.get() );
         double maxRange = Math.min( range, Config.MAIN.GENERAL.maxInspectRange.get() ) + 2.0;
         Vec3 eyePos = player.getEyePosition( 1.0F );
         AABB entityBB = entity.getBoundingBox();
@@ -265,7 +265,7 @@ public class PingManager {
     }
     
     private static boolean isBlockTooFar( ServerPlayer player, BlockPos blockPos ) {
-        double range = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECTION_RANGE.get() );
+        double range = player.getAttributeValue( CoOpOverhaulObjects.Attributes.INSPECT_RANGE.get() );
         double maxRange = Math.min( range, Config.MAIN.GENERAL.maxInspectRange.get() ) + 2.0;
         Vec3 eyePos = player.getEyePosition( 1.0F );
         double dX = blockPos.getX() + 0.5 - eyePos.x;

@@ -27,7 +27,7 @@ public final class CoOpOverhaulObjects {
     
     /** Attributes. */
     public interface Attributes {
-        RegistryObject<Attribute> INSPECTION_RANGE = attribute( "inspection_range" );
+        RegistryObject<Attribute> INSPECT_RANGE = attribute( "inspect_range" );
     }
     
     // No command args yet

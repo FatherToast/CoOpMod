@@ -2,9 +2,7 @@ package fathertoast.coopoverhaul.common.core;
 
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.network.PacketHandler;
-import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
@@ -40,6 +38,7 @@ public final class CoOpOverhaulMod {
      *          - sounds
      *          - nameplate
      *          + a way to cancel pings
+     *          + more automatic/detected ping color & sound assignment
      *          ? HUD arrows pointing to off-screen pings
      *      - find players
      *          + render marker for players beyond render distance
@@ -84,8 +83,6 @@ public final class CoOpOverhaulMod {
         IEventBus eventBus = context.getModEventBus();
         
         eventBus.addListener( this::onInterModEnqueue );
-        
-        MinecraftForge.EVENT_BUS.addListener( AttributeModUtil::onServerStarted );
         
         Config.initializeEarly();
         
