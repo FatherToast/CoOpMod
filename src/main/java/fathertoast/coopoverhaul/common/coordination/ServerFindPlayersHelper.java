@@ -10,7 +10,6 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.Team;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -53,17 +52,24 @@ public final class ServerFindPlayersHelper {
         updateCooldown++;
         if( updateCooldown > Config.MAIN.GENERAL.findPlayersUpdateCooldown.get() ) {
             updateCooldown = 0;
-            PlayerList players = server.getPlayerList();
-            TRACKING_PLAYERS.removeAll( REMOVE_PLAYERS );
-            REMOVE_PLAYERS.clear();
-            TRACKING_PLAYERS.forEach( uuid -> update( players.getPlayer( uuid ) ) );
+            if( Config.MAIN.GENERAL.maxFindPlayersRange.get() > 0.0 ) {
+                PlayerList players = server.getPlayerList();
+                TRACKING_PLAYERS.removeAll( REMOVE_PLAYERS );
+                REMOVE_PLAYERS.clear();
+                TRACKING_PLAYERS.forEach( uuid -> {
+                    ServerPlayer player = players.getPlayer( uuid );
+                    if( player != null ) update( player );
+                } );
+            }
+            else {
+                TRACKING_PLAYERS.clear();
+                REMOVE_PLAYERS.clear();
+            }
         }
     }
     
     /** Sends an update packet to the player. */
-    private static void update( @Nullable ServerPlayer player ) {
-        if( player == null ) return;
-        
+    private static void update( ServerPlayer player ) {
         Map<UUID, BlockPos> playerPositions = new HashMap<>();
         for( Player otherPlayer : player.level().players() ) {
             if( canFind( player, otherPlayer ) ) {

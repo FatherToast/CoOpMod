@@ -117,7 +117,7 @@ public class ClientPreferences extends AbstractConfigFile {
                     3.4e38, DoubleField.Range.NON_NEGATIVE,
                     "How far the 'find players' function can highlight friendly players, in blocks.",
                     "Leaving this at a very high value effectively just sets your range to the max allowed by the " +
-                            "server or to your render distance, whichever is lower." ) );
+                            "server." ) );
             SPEC.callback( FindPlayersManager::updateRange );
             
             SPEC.newLine();

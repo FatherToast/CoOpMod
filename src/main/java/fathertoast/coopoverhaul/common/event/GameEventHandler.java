@@ -6,6 +6,7 @@ import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.coordination.PingManager;
 import fathertoast.coopoverhaul.common.coordination.ServerFindPlayersHelper;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
+import fathertoast.coopoverhaul.common.network.work.ServerWork;
 import fathertoast.coopoverhaul.common.protection.FriendlyFireHelper;
 import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import net.minecraft.server.level.ServerLevel;
@@ -50,6 +51,19 @@ public final class GameEventHandler {
         if( event.getEntity() instanceof ServerPlayer player ) {
             // Send config sync packet to client
             Config.MAIN.sendSyncPacket( player );
+        }
+    }
+    
+    /**
+     * Called when a player logs out.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    @SuppressWarnings( "ConstantConditions" )
+    public static void onPlayerLoggedOut( PlayerEvent.PlayerLoggedOutEvent event ) {
+        if( event.getEntity() instanceof ServerPlayer player ) {
+            ServerWork.cancelAllDataRequests( player );
         }
     }
     

@@ -20,11 +20,21 @@ public final class ServerWork {
     public static final Set<Player> PING_ON_COOLDOWN = new HashSet<>();
     
     public static void handleDataRequest( ServerboundDataRequestPacket message, @Nullable ServerPlayer sender ) {
-        if( sender == null ) return;
-        // Deliver request to the appropriate data handler
+        if( sender != null ) handleDataRequest( message.type(), message.enable(), sender );
+    }
+    
+    /** Called when a player logs out to cancel all their data requests. */
+    public static void cancelAllDataRequests( ServerPlayer player ) {
+        for( ServerboundDataRequestPacket.Type value : ServerboundDataRequestPacket.Type.values() ) {
+            handleDataRequest( value, false, player );
+        }
+    }
+    
+    /** Delivers data request to the appropriate data handler. */
+    private static void handleDataRequest( ServerboundDataRequestPacket.Type type, boolean enable, ServerPlayer sender ) {
         //noinspection SwitchStatementWithTooFewBranches
-        switch( message.type() ) {
-            case FIND_PLAYERS -> ServerFindPlayersHelper.setTracker( sender, message.enable() );
+        switch( type ) {
+            case FIND_PLAYERS -> ServerFindPlayersHelper.setTracker( sender, enable );
         }
     }
     
