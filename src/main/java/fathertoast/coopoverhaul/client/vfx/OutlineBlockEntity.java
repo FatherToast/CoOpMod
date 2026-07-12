@@ -1,5 +1,6 @@
 package fathertoast.coopoverhaul.client.vfx;
 
+import fathertoast.coopoverhaul.client.compat.embeddium.COEmbeddiumUtils;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -21,8 +22,11 @@ public class OutlineBlockEntity extends BlockEntity {
     private static final OutlineBlockEntity INSTANCE = new OutlineBlockEntity();
     
     /** Called each render frame if any highlighted blocks can be present. */
-    public static void ensurePresent( LevelRenderer levelRenderer ) { levelRenderer.globalBlockEntities.add( INSTANCE ); }
+    public static void ensurePresent() {
+        COEmbeddiumUtils.addGlobalBlockEntity( INSTANCE );
+    }
     
+    // TODO - Don't forget about embeddium
     public static void remove( LevelRenderer levelRenderer ) {
         levelRenderer.globalBlockEntities.removeIf( blockEntity -> blockEntity instanceof OutlineBlockEntity );
     }
