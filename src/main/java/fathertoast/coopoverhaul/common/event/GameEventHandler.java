@@ -112,9 +112,8 @@ public final class GameEventHandler {
     @SubscribeEvent( priority = EventPriority.NORMAL )
     public static void onLivingAttack( LivingAttackEvent event ) {
         LivingEntity entity = event.getEntity();
-        // noinspection resource
         if( !entity.level().isClientSide() ) {
-            if( entity instanceof Player player && FriendlyFireHelper.shouldCancelDamage( player, event.getSource() ) ) {
+            if( FriendlyFireHelper.shouldCancelDamage( entity, event.getSource() ) ) {
                 event.setCanceled( true );
             }
         }
@@ -131,9 +130,8 @@ public final class GameEventHandler {
     @SubscribeEvent( priority = EventPriority.NORMAL )
     public static void onLivingHurt( LivingHurtEvent event ) {
         LivingEntity entity = event.getEntity();
-        // noinspection resource
         if( !entity.level().isClientSide() ) {
-            if( entity instanceof Player player && FriendlyFireHelper.isFriendlyFire( player, event.getSource() ) ) {
+            if( FriendlyFireHelper.isFriendlyFire( entity, event.getSource() ) ) {
                 event.setAmount( event.getAmount() * Config.MAIN.GENERAL.friendlyFireMulti.getFloat() );
             }
         }
