@@ -109,15 +109,15 @@ public final class PacketHandler {
     
     // ---- Client -> Server Message Sending ---- //
     
-    /** Sends a data request to the server. */
+    /** Sends a find players data request to the server. */
     @OnClient
     public static void requestFindPlayersData( boolean enable ) {
-        CHANNEL.sendToServer( new ServerboundDataRequestPacket( ServerboundDataRequestPacket.Type.FIND_PLAYERS, enable ) );
+        requestData( ServerboundDataRequestPacket.Type.FIND_PLAYERS, enable );
     }
     
     /** Sends a data request to the server. */
     @OnClient
-    public static void requestData( ServerboundDataRequestPacket.Type type, boolean enable ) {
+    private static void requestData( ServerboundDataRequestPacket.Type type, boolean enable ) {
         CHANNEL.sendToServer( new ServerboundDataRequestPacket( type, enable ) );
     }
     
