@@ -2,6 +2,7 @@ package fathertoast.coopoverhaul.common.network.work;
 
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.coordination.PingManager;
+import fathertoast.coopoverhaul.common.coordination.ServerFindPlayersHelper;
 import fathertoast.coopoverhaul.common.network.message.ServerboundBlockPingPacket;
 import fathertoast.coopoverhaul.common.network.message.ServerboundDataRequestPacket;
 import fathertoast.coopoverhaul.common.network.message.ServerboundEntityPingPacket;
@@ -20,9 +21,10 @@ public final class ServerWork {
     
     public static void handleDataRequest( ServerboundDataRequestPacket message, @Nullable ServerPlayer sender ) {
         if( sender == null ) return;
+        // Deliver request to the appropriate data handler
         //noinspection SwitchStatementWithTooFewBranches
         switch( message.type() ) {
-            case FIND_PLAYERS -> {}//TODO
+            case FIND_PLAYERS -> ServerFindPlayersHelper.setTracker( sender, message.enable() );
         }
     }
     

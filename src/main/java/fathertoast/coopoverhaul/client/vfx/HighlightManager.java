@@ -13,12 +13,15 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.model.BakedModel;
@@ -26,10 +29,11 @@ import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.SpyglassItem;
 import net.minecraft.world.level.Level;
@@ -42,6 +46,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.client.RenderTypeHelper;
 import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +57,12 @@ import java.util.*;
 
 /**
  * Keeps track of what should be highlighted and renders highlights as needed.
+ * <p>
+ * For highlights other than inspect highlights, also renders a nameplate above.
+ *
+ * @see fathertoast.coopoverhaul.client.coordination.InspectManager
+ * @see PingManager
+ * @see FindPlayersManager
  */
 public final class HighlightManager {
     
@@ -65,6 +76,12 @@ public final class HighlightManager {
     
     /** The block positions we should highlight for the inspect feature. */
     public static Map<BlockPos, Ping.BlockData> getInspectBlocks() { return inspectBlocks; }
+    
+    /** @return True if the entity has an active ping nameplate. */
+    public static boolean hasNameplate( Entity entity ) {
+        return ClientConfig.PREFS.INSPECT.nameplateSize.get() > 0.0 &&
+                (PingManager.isPinged( entity ) || FindPlayersManager.shouldHighlight( entity ));
+    }
     
     /** @return True if the entity should be rendered with a glow effect. */
     public static boolean shouldHighlight( Entity entity ) {
@@ -206,8 +223,9 @@ public final class HighlightManager {
     // ---- Render Ping Nameplates ---- //
     
     /** Called every render frame. Renders all pinged entity and block nameplates. */
-    public static void renderNameplates( Minecraft client, ClientLevel level, LevelRenderer levelRenderer, PoseStack poseStack,
-                                         Matrix4f projectionMatrix, int renderTick, float partialTick, Camera camera, Frustum frustum ) {
+    public static void renderNameplates( Minecraft client, ClientLevel level, LocalPlayer player, LevelRenderer levelRenderer,
+                                         PoseStack poseStack, Matrix4f projectionMatrix, int renderTick, float partialTick,
+                                         Camera camera, Frustum frustum ) {
         PingManager manager = PingManager.get( level );
         if( !FindPlayersManager.isEnabled() && !manager.areAnyPingsActive() ) return;
         // In case we swap back to rendering AFTER_LEVEL
@@ -221,26 +239,26 @@ public final class HighlightManager {
         
         //TODO Perhaps combine entity stacks into one combined nameplate, similar to how multi-block pings work
         
-        // Render player nameplates
-        //TODO Maybe someday do something with PlayerFaceRenderer?
-        Set<Integer> renderedPlayers;
+        // Render find players nameplates
+        Set<UUID> renderedPlayers;
         if( FindPlayersManager.isEnabled() ) {
             renderedPlayers = new HashSet<>();
-            for( Player player : level.players() ) {
-                if( FindPlayersManager.shouldHighlight( player ) ) {
-                    Vec3 pos = player.getPosition( partialTick );
-                    renderNameplate( client, player.getDisplayName(), poseStack, bufferSource,
-                            camera, baseScale, pos.x, pos.y + player.getNameTagOffsetY(), pos.z );
-                    renderedPlayers.add( player.getId() );
+            for( AbstractClientPlayer otherPlayer : level.players() ) {
+                if( FindPlayersManager.shouldHighlight( otherPlayer ) ) {
+                    Vec3 pos = otherPlayer.getPosition( partialTick );
+                    renderNameplate( client, otherPlayer.getDisplayName(), poseStack, bufferSource,
+                            camera, baseScale, pos.x, pos.y + otherPlayer.getNameTagOffsetY(), pos.z, otherPlayer );
+                    renderedPlayers.add( otherPlayer.getUUID() );
                 }
             }
         }
         else renderedPlayers = null;
         
-        // Render entity nameplates
+        // Render pinged entity nameplates
         for( Map.Entry<Integer, Ping.EntityData> ping : manager.getEntityPings() ) {
             Entity entity = level.getEntity( ping.getKey() );
-            if( entity != null && (renderedPlayers == null || !renderedPlayers.contains( entity.getId() )) ) {
+            if( entity != null && (renderedPlayers == null || !renderedPlayers.contains( entity.getUUID() )) ) {
+                AbstractClientPlayer otherPlayer = entity instanceof AbstractClientPlayer p ? p : null;
                 Vec3 pos = entity.getPosition( partialTick );
                 
                 // Item projectiles' item stack usually provides
@@ -250,11 +268,27 @@ public final class HighlightManager {
                         : entity.getDisplayName();
                 
                 renderNameplate( client, name, poseStack, bufferSource,
-                        camera, baseScale, pos.x, pos.y + entity.getNameTagOffsetY(), pos.z );
+                        camera, baseScale, pos.x, pos.y + entity.getNameTagOffsetY(), pos.z, otherPlayer );
+                if( renderedPlayers != null && otherPlayer != null ) renderedPlayers.add( otherPlayer.getUUID() );
             }
         }
         
-        // Render block nameplates
+        // Render find players nameplates for any players not already rendered
+        if( renderedPlayers != null ) {
+            for( Map.Entry<UUID, BlockPos> playerPos : FindPlayersManager.getPlayerPositions() ) {
+                if( !renderedPlayers.contains( playerPos.getKey() ) ) {
+                    PlayerInfo info = player.connection.getPlayerInfo( playerPos.getKey() );
+                    if( info != null && FindPlayersManager.isInRange( player, playerPos.getValue() ) ) {
+                        Vec3 pos = FindPlayersManager.getPos( playerPos.getKey(), playerPos.getValue(), partialTick );
+                        renderNameplate( client, getDisplayName( info ), poseStack, bufferSource,
+                                camera, baseScale, pos.x, pos.y, pos.z,
+                                info.getSkinLocation(), false, false );
+                    }
+                }
+            }
+        }
+        
+        // Render pinged block nameplates
         for( Map.Entry<BlockPos, Ping.BlockData> ping : manager.getBlockPings() ) {
             BlockPos pos = ping.getKey();
             BlockState block = level.getBlockState( pos );
@@ -262,7 +296,7 @@ public final class HighlightManager {
             if( offset != null ) {
                 Component name = Component.translatable( I18n.get( block.getBlock().getDescriptionId() ) );
                 renderNameplate( client, name, poseStack, bufferSource,
-                        camera, baseScale, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z );
+                        camera, baseScale, pos.getX() + offset.x, pos.getY() + offset.y, pos.getZ() + offset.z, null );
             }
         }
         
@@ -274,6 +308,13 @@ public final class HighlightManager {
     private static boolean isScoping( Camera camera ) {
         return Minecraft.getInstance().options.getCameraType().isFirstPerson() &&
                 camera.getEntity() instanceof LocalPlayer player && player.isScoping();
+    }
+    
+    /** @return The display name to use for players outside render distance. */
+    public static Component getDisplayName( PlayerInfo playerInfo ) {
+        return playerInfo.getTabListDisplayName() != null ? playerInfo.getTabListDisplayName().copy() :
+                PlayerTeam.formatNameForTeam( playerInfo.getTeam(),
+                        Component.literal( playerInfo.getProfile().getName() ) );
     }
     
     /** @return The nameplate position offset to apply for the block, or null if no nameplate should be rendered. */
@@ -309,7 +350,29 @@ public final class HighlightManager {
     
     /** Renders a nameplate at the given position. */
     private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource bufferSource,
-                                         Camera camera, float baseScale, double x, double y, double z ) {
+                                         Camera camera, float baseScale, double x, double y, double z,
+                                         @Nullable AbstractClientPlayer player ) {
+        ResourceLocation skinLocation;
+        boolean hasHat;
+        boolean upsideDown;
+        if( player == null ) {
+            skinLocation = null;
+            hasHat = false;
+            upsideDown = false;
+        }
+        else {
+            skinLocation = player.getSkinTextureLocation();
+            hasHat = player.isModelPartShown( PlayerModelPart.HAT );
+            upsideDown = LivingEntityRenderer.isEntityUpsideDown( player );
+        }
+        renderNameplate( client, text, poseStack, bufferSource, camera, baseScale, x, y, z,
+                skinLocation, hasHat, upsideDown );
+    }
+    
+    /** Renders a nameplate at the given position. */
+    private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource bufferSource,
+                                         Camera camera, float baseScale, double x, double y, double z,
+                                         @Nullable ResourceLocation skinLocation, boolean hasHat, boolean upsideDown ) {
         poseStack.pushPose();
         Vec3 cameraPos = camera.getPosition();
         Vector3f cameraUpVec = camera.getUpVector();
@@ -323,6 +386,11 @@ public final class HighlightManager {
         Matrix4f pose = poseStack.last().pose();
         float offset = -client.font.width( text ) >> 1;
         
+        if( skinLocation != null ) {
+            float size = ClientConfig.PREFS.INSPECT.nameplateFaceSize.getFloat();
+            if( size > 0.0F )
+                RenderHelper.drawFace( poseStack, skinLocation, -size / 2.0F, -size - 8.0F, size, hasHat, upsideDown );
+        }
         client.font.drawInBatch( text, offset, -5.0F, 0xFF_FFFFFF,
                 false, pose, bufferSource, Font.DisplayMode.SEE_THROUGH,
                 0, 0xF000F0 );

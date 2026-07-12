@@ -4,6 +4,7 @@ package fathertoast.coopoverhaul.common.event;
 import fathertoast.coopoverhaul.api.common.util.CoOpOverhaulObjects;
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.coordination.PingManager;
+import fathertoast.coopoverhaul.common.coordination.ServerFindPlayersHelper;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.protection.FriendlyFireHelper;
 import fathertoast.coopoverhaul.common.util.AttributeModUtil;
@@ -13,7 +14,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -71,6 +71,18 @@ public final class GameEventHandler {
                 event.addModifier( CoOpOverhaulObjects.Attributes.INSPECT_RANGE.get(),
                         AttributeModUtil.getSpyglassInspectRangeMod() );
             }
+        }
+    }
+    
+    /**
+     * Called at the start and end of each server tick.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onServerTick( TickEvent.ServerTickEvent event ) {
+        if( event.phase == TickEvent.Phase.END ) {
+            ServerFindPlayersHelper.onTick( event.getServer() );
         }
     }
     

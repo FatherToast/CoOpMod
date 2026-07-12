@@ -7,7 +7,10 @@ import fathertoast.coopoverhaul.common.util.AttributeModUtil;
 import fathertoast.crust.api.config.common.AbstractConfigCategory;
 import fathertoast.crust.api.config.common.AbstractConfigFile;
 import fathertoast.crust.api.config.common.ConfigManager;
-import fathertoast.crust.api.config.common.field.*;
+import fathertoast.crust.api.config.common.field.BooleanField;
+import fathertoast.crust.api.config.common.field.DoubleField;
+import fathertoast.crust.api.config.common.field.EnumField;
+import fathertoast.crust.api.config.common.field.IntField;
 import fathertoast.crust.api.config.common.file.TomlHelper;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -54,7 +57,9 @@ public class MainConfig extends AbstractConfigFile {
         public final DoubleField maxInspectRange;
         
         public final BooleanField allowRecoloringHidden;
+        
         public final DoubleField maxFindPlayersRange;
+        public final IntField findPlayersUpdateCooldown;
         
         public final IntField pingDuration;
         public final IntField pingCooldown;
@@ -105,10 +110,17 @@ public class MainConfig extends AbstractConfigFile {
             allowRecoloringHidden = SPEC.define( new BooleanField( "allow_recoloring_hidden", false,
                     "When enabled, allows players to recolor highlights for normally hidden blocks, " +
                             "like silverfish-infested blocks." ) );
+            
+            SPEC.newLine();
+            
             maxFindPlayersRange = SPEC.define( new DoubleField( "max_find_players_range",
                     3.4e38, DoubleField.Range.NON_NEGATIVE,
                     "How far players are allowed to find friendly players from, in blocks.",
                     "Setting this to 0 completely disables the 'find players' feature." ) );
+            findPlayersUpdateCooldown = SPEC.define( new IntField( "find_players_update_cooldown",
+                    33, IntField.Range.NON_NEGATIVE,
+                    "The time, in ticks, between sending position update packets to players so they can " +
+                            "find distant players. (20 ticks = 1 second)" ) );
             
             SPEC.newLine();
             

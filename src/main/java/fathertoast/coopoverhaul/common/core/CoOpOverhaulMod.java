@@ -30,6 +30,7 @@ public final class CoOpOverhaulMod {
      *          ? all/enough online players requested
      *  + social features
      *      ? player inspect
+     *      + parties (Maybe hook into or rely on HQM party system)
      *      ? enable chat over (most) screens
      *      ? chat item linking ("Show Me What You Got" does this, maybe ditch)
      *      ? chat emojis
@@ -43,9 +44,9 @@ public final class CoOpOverhaulMod {
      *          + more automatic/detected ping color & sound assignment
      *          ? HUD arrows pointing to off-screen pings
      *      - find players
-     *          + render marker for players beyond render distance
      *          ? HUD arrows pointing to off-screen players
      *      - party status GUI overlay
+     *          + status for remote players in party
      *      ? revive
      *  - protection features
      *      - friendly fire

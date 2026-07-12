@@ -34,6 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * On the logical client, it only keeps track of pings in the player's current dimension and sends
  * ping packets to the server.
+ *
+ * @see fathertoast.coopoverhaul.client.coordination.InspectManager
+ * @see fathertoast.coopoverhaul.client.coordination.ClientPingHelper
  */
 public class PingManager {
     /** Mapping of each level key (dimension) to its ping manager instance. */

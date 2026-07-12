@@ -59,10 +59,10 @@ public final class ClientGameEventHandler {
         }
         else if( event.getStage() == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES ) {
             Minecraft client = Minecraft.getInstance();
-            if( client.level == null ) return;
+            if( client.level == null || client.player == null ) return;
             
             if( ClientConfig.PREFS.INSPECT.nameplateSize.get() > 0.0 ) {
-                HighlightManager.renderNameplates( client, client.level, event.getLevelRenderer(), event.getPoseStack(),
+                HighlightManager.renderNameplates( client, client.level, client.player, event.getLevelRenderer(), event.getPoseStack(),
                         event.getProjectionMatrix(), event.getRenderTick(), event.getPartialTick(), event.getCamera(), event.getFrustum() );
             }
         }
@@ -82,6 +82,10 @@ public final class ClientGameEventHandler {
     static void onRenderNameTag( RenderNameTagEvent event ) {
         if( skipNameTag && event.getEntity() instanceof Player ) {
             skipNameTag = false;
+            event.setResult( Event.Result.DENY );
+        }
+        else if( HighlightManager.hasNameplate( event.getEntity() ) ) {
+            // Disable vanilla name tag if we are rendering one ourselves so we don't see duplicate names
             event.setResult( Event.Result.DENY );
         }
     }

@@ -1,8 +1,8 @@
 package fathertoast.coopoverhaul.common.network.message;
 
-import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.coordination.Ping;
 import fathertoast.coopoverhaul.common.coordination.PingManager;
+import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.coopoverhaul.common.network.work.ClientWork;
 import fathertoast.coopoverhaul.common.util.TrackingHelper;
 import io.netty.handler.codec.DecoderException;
@@ -68,15 +68,15 @@ public record ClientboundPingManagerSyncPacket( Map<Integer, Ping.EntityData> en
     
     public static void encode( ClientboundPingManagerSyncPacket message, FriendlyByteBuf buffer ) {
         buffer.writeInt( message.entityPings().size() );
-        for( Map.Entry<Integer, Ping.EntityData> ping : message.entityPings().entrySet() ) {
-            buffer.writeInt( ping.getKey() );
-            ping.getValue().encode( buffer );
-        }
+        message.entityPings().forEach( ( key, value ) -> {
+            buffer.writeInt( key );
+            value.encode( buffer );
+        } );
         
         buffer.writeInt( message.blockPings().size() );
-        for( Map.Entry<BlockPos, Ping.BlockData> ping : message.blockPings().entrySet() ) {
-            buffer.writeBlockPos( ping.getKey() );
-            ping.getValue().encode( buffer );
-        }
+        message.blockPings().forEach( ( key, value ) -> {
+            buffer.writeBlockPos( key );
+            value.encode( buffer );
+        } );
     }
 }

@@ -52,6 +52,7 @@ public class ClientPreferences extends AbstractConfigFile {
         //        public final DoubleField range;
         
         public final DoubleField nameplateSize;
+        public final DoubleField nameplateFaceSize;
         
         public final EnumField<KeyBindingEvents.Mode> keyMode;
         public final BooleanField whileScoped;
@@ -74,6 +75,10 @@ public class ClientPreferences extends AbstractConfigFile {
                     1.0, 0.025 * 0.15, DoubleField.Range.NON_NEGATIVE,
                     "How large nameplates over pinged blocks/entities are rendered. Setting this to 0 " +
                             "disables ping nameplates entirely." ) );
+            nameplateFaceSize = SPEC.define( new ScaledDoubleField( "ping_nameplate_face_size",
+                    1.0, 20.0, DoubleField.Range.NON_NEGATIVE,
+                    "How large player faces above player nameplates are rendered, relative to the " +
+                            "nameplate itself. Setting this to 0 disables player faces over nameplates." ) );
             
             SPEC.newLine();
             

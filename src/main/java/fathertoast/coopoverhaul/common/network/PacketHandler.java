@@ -48,6 +48,8 @@ public final class PacketHandler {
                 ClientboundEntityPingPacket::encode, ClientboundEntityPingPacket::decode, ClientboundEntityPingPacket::handle );
         registerClientboundMessage( ++messageIndex, ClientboundBlockPingPacket.class,
                 ClientboundBlockPingPacket::encode, ClientboundBlockPingPacket::decode, ClientboundBlockPingPacket::handle );
+        registerClientboundMessage( ++messageIndex, ClientboundFindPlayersDataPacket.class,
+                ClientboundFindPlayersDataPacket::encode, ClientboundFindPlayersDataPacket::decode, ClientboundFindPlayersDataPacket::handle );
         
         // Client -> Server
         registerServerboundMessage( ++messageIndex, ServerboundDataRequestPacket.class,
@@ -97,6 +99,11 @@ public final class PacketHandler {
                 }
             }
         }
+    }
+    
+    /** Called periodically to tell clients where far-away friendly players are located. */
+    public static void sendFindPlayersData( ClientboundFindPlayersDataPacket message, ServerPlayer player ) {
+        sendToClient( message, player );
     }
     
     
