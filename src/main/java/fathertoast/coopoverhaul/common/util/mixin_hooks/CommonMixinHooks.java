@@ -2,6 +2,7 @@ package fathertoast.coopoverhaul.common.util.mixin_hooks;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import fathertoast.coopoverhaul.client.vfx.HighlightManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
@@ -22,6 +23,16 @@ public class CommonMixinHooks {
                 cir.setReturnValue( HighlightManager.getHighlightColor( entity ) );
             }
         }
+    }
+    
+    /**
+     * Swap the buffer source to an outline one if the block entity should be highlighted.
+     * This is the version called by the Embeddium compatibility mixin.
+     */
+    public static <E extends BlockEntity> MultiBufferSource
+    modifyRenderBufferSource( E blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource ) {
+        return modifyRenderBufferSource( Minecraft.getInstance().levelRenderer,
+                blockEntity, partialTick, poseStack, bufferSource );
     }
     
     /**

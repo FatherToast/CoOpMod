@@ -9,7 +9,8 @@
   "client": [
     "EntityMixin",
     "LevelRendererMixin",
-    "MinecraftMixin"
+    "MinecraftMixin",
+    "SodiumWorldRendererMixin"
   ],
   "server": [],
   "injectors": {

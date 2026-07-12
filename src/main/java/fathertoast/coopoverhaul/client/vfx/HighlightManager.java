@@ -148,7 +148,7 @@ public final class HighlightManager {
                                             Matrix4f projectionMatrix, int renderTick, float partialTick, Camera camera, Frustum frustum ) {
         // Render block highlights
         if( !areAnyBlocksHighlighted() ) return;
-        OutlineBlockEntity.ensurePresent();
+        OutlineBlockEntity.ensurePresent( levelRenderer );
         Vec3 cameraPos = camera.getPosition();
         OutlineBufferSource bufferSource = client.renderBuffers().outlineBufferSource();
         for( Map.Entry<BlockPos, Ping.BlockData> ping : PingManager.get( level ).getBlockPings() ) {
@@ -331,5 +331,5 @@ public final class HighlightManager {
     }
     
     
-    private HighlightManager() { }
+    private HighlightManager() {}
 }
