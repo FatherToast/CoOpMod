@@ -3,6 +3,7 @@ package fathertoast.coopoverhaul.common.network.work;
 import fathertoast.coopoverhaul.common.config.Config;
 import fathertoast.coopoverhaul.common.coordination.PingManager;
 import fathertoast.coopoverhaul.common.network.message.ServerboundBlockPingPacket;
+import fathertoast.coopoverhaul.common.network.message.ServerboundDataRequestPacket;
 import fathertoast.coopoverhaul.common.network.message.ServerboundEntityPingPacket;
 import fathertoast.crust.api.lib.DeferredAction;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,6 +17,14 @@ public final class ServerWork {
     
     /** All players currently unable to send pings. */
     public static final Set<Player> PING_ON_COOLDOWN = new HashSet<>();
+    
+    public static void handleDataRequest( ServerboundDataRequestPacket message, @Nullable ServerPlayer sender ) {
+        if( sender == null ) return;
+        //noinspection SwitchStatementWithTooFewBranches
+        switch( message.type() ) {
+            case FIND_PLAYERS -> {}//TODO
+        }
+    }
     
     public static void handlePing( ServerboundEntityPingPacket message, @Nullable ServerPlayer sender ) {
         if( sender == null || isPingOnCooldown( sender ) ) return;

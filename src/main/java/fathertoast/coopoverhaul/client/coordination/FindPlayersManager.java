@@ -2,6 +2,7 @@ package fathertoast.coopoverhaul.client.coordination;
 
 import fathertoast.coopoverhaul.client.config.ClientConfig;
 import fathertoast.coopoverhaul.client.vfx.HighlightManager;
+import fathertoast.coopoverhaul.common.network.PacketHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
@@ -34,6 +35,8 @@ public final class FindPlayersManager {
     
     /** Sets "find players" mode on or off, which highlights nearby friendly players. */
     public static void setEnabled( boolean on ) {
+        if( enabled != on ) PacketHandler.requestFindPlayersData( on );
+        
         enabled = on;
         enabledDuration = 0;
     }

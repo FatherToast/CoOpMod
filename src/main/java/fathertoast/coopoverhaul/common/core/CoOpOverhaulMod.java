@@ -24,11 +24,13 @@ public final class CoOpOverhaulMod {
      *       + = incomplete new feature, ? = feature to consider adding)
      *  - general features
      *      - Jade integration (tooltip for inspect target)
+     *          ? figure out why distant entities don't display tooltips
      *      ? multiplayer pause ("Multiplayer Server Pause" does this, maybe ditch)
      *          ? automatic when no players online
      *          ? all/enough online players requested
      *  + social features
      *      ? player inspect
+     *      ? enable chat over (most) screens
      *      ? chat item linking ("Show Me What You Got" does this, maybe ditch)
      *      ? chat emojis
      *      ? salute/emotes

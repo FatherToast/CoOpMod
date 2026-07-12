@@ -50,6 +50,8 @@ public final class PacketHandler {
                 ClientboundBlockPingPacket::encode, ClientboundBlockPingPacket::decode, ClientboundBlockPingPacket::handle );
         
         // Client -> Server
+        registerServerboundMessage( ++messageIndex, ServerboundDataRequestPacket.class,
+                ServerboundDataRequestPacket::encode, ServerboundDataRequestPacket::decode, ServerboundDataRequestPacket::handle );
         registerServerboundMessage( ++messageIndex, ServerboundEntityPingPacket.class,
                 ServerboundEntityPingPacket::encode, ServerboundEntityPingPacket::decode, ServerboundEntityPingPacket::handle );
         registerServerboundMessage( ++messageIndex, ServerboundBlockPingPacket.class,
@@ -99,6 +101,18 @@ public final class PacketHandler {
     
     
     // ---- Client -> Server Message Sending ---- //
+    
+    /** Sends a data request to the server. */
+    @OnClient
+    public static void requestFindPlayersData( boolean enable ) {
+        CHANNEL.sendToServer( new ServerboundDataRequestPacket( ServerboundDataRequestPacket.Type.FIND_PLAYERS, enable ) );
+    }
+    
+    /** Sends a data request to the server. */
+    @OnClient
+    public static void requestData( ServerboundDataRequestPacket.Type type, boolean enable ) {
+        CHANNEL.sendToServer( new ServerboundDataRequestPacket( type, enable ) );
+    }
     
     /** Sends a ping to the server. */
     @OnClient
