@@ -90,7 +90,7 @@ repositories {
     }
     maven {
         name 'BlameJared'
-        url "https://maven.blamejared.com"
+        url 'https://maven.blamejared.com'
     }
     flatDir {
         dir 'flat_deps'
