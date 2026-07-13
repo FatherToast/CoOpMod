@@ -270,6 +270,7 @@ public class ClientPreferences extends AbstractConfigFile {
                 }
                 if( entityType == EntityType.END_CRYSTAL ) {
                     builder.put( entityType, new HighlightEffects( 0xFF0000, CoOpOverhaulObjects.SoundEvents.PING_HOSTILE_LOUD ) );
+                    continue;
                 }
                 switch( entityType.getCategory() ) { // TODO update to use extends super in higher Crust ver, maybe also add auto-color options
                     case MONSTER ->
