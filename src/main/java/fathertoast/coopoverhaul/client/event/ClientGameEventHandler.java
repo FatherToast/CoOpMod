@@ -33,6 +33,10 @@ public final class ClientGameEventHandler {
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
     static void onClientTick( TickEvent.ClientTickEvent event ) {
+        //        if( event.phase == TickEvent.Phase.START ) {
+        //            ChatWidget.onTick();
+        //        }
+        //        else
         if( event.phase == TickEvent.Phase.END ) {
             ClientPingHelper.onTick();
             FindPlayersManager.onTick();
@@ -89,6 +93,19 @@ public final class ClientGameEventHandler {
             event.setResult( Event.Result.DENY );
         }
     }
+    
+    //    /**
+    //     * Fired after the screen's overridable initialization method is called.
+    //     *
+    //     * @param event The event data.
+    //     */
+    //    @SubscribeEvent( priority = EventPriority.LOWEST )
+    //    static void onPostInitScreen( ScreenEvent.Init.Post event ) {
+    //        // The idea here is to only allow opening the chat over non-chat screens while in game
+    //        if( Minecraft.getInstance().player != null && !(event.getScreen() instanceof ChatScreen) ) {
+    //            event.addListener( new ChatWidget( event.getScreen() ) );
+    //        }
+    //    }
     
     /**
      * Called when a block is about to be broken by a player.

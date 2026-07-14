@@ -113,11 +113,20 @@ public final class KeyBindingEvents {
                 if( isActive( key, INSPECT ) ) {
                     if( ClientConfig.PREFS.INSPECT.keyMode.get() == Mode.HOLD ) InspectManager.disable();
                 }
-                if( isActive( key, FIND_PLAYERS ) ) {
+                else if( isActive( key, FIND_PLAYERS ) ) {
                     if( ClientConfig.PREFS.PLAYER_FINDER.keyMode.get() == Mode.HOLD ) FindPlayersManager.delayDisable();
                 }
             }
         }
+        //        else if( action == GLFW.GLFW_PRESS ) {
+        //            // Key pressed
+        //            if( isActive( key, client.options.keyChat ) ) {
+        //                ChatWidget.onChatKeyPressed( false );
+        //            }
+        //            else if( isActive( key, client.options.keyCommand ) ) {
+        //                ChatWidget.onChatKeyPressed( true );
+        //            }
+        //        }
         return false;
     }
     
