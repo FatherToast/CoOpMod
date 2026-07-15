@@ -1,5 +1,6 @@
 package fathertoast.coopoverhaul.client.vfx;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -349,7 +350,7 @@ public final class HighlightManager {
     //private static final int NAMEPLATE_PACKED_LIGHT = LightTexture.pack( 15, 15 );// = 0xF000F0;
     
     /** Renders a nameplate at the given position. */
-    private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource bufferSource,
+    private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource,
                                          Camera camera, float baseScale, double x, double y, double z,
                                          @Nullable AbstractClientPlayer player ) {
         ResourceLocation skinLocation;
@@ -370,7 +371,7 @@ public final class HighlightManager {
     }
     
     /** Renders a nameplate at the given position. */
-    private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource bufferSource,
+    private static void renderNameplate( Minecraft client, Component text, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource,
                                          Camera camera, float baseScale, double x, double y, double z,
                                          @Nullable ResourceLocation skinLocation, boolean hasHat, boolean upsideDown ) {
         poseStack.pushPose();
@@ -391,13 +392,16 @@ public final class HighlightManager {
             if( size > 0.0F )
                 RenderHelper.drawFace( poseStack, skinLocation, -size / 2.0F, -size - 8.0F, size, hasHat, upsideDown );
         }
+        RenderSystem.disableDepthTest();
         client.font.drawInBatch( text, offset, -5.0F, 0xFF_FFFFFF,
                 false, pose, bufferSource, Font.DisplayMode.SEE_THROUGH,
                 0, 0xF000F0 );
+        bufferSource.endBatch();
+        RenderSystem.enableDepthTest();
         
         poseStack.popPose();
     }
     
     
-    private HighlightManager() {}
+    private HighlightManager() { }
 }
