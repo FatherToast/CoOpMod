@@ -5,6 +5,7 @@ import fathertoast.coopoverhaul.client.config.ClientConfig;
 import fathertoast.coopoverhaul.client.coordination.ClientPingHelper;
 import fathertoast.coopoverhaul.client.coordination.FindPlayersManager;
 import fathertoast.coopoverhaul.client.coordination.InspectManager;
+import fathertoast.coopoverhaul.client.social.ClientChatHelper;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import fathertoast.crust.api.client.SortedKeyMapping;
 import net.minecraft.client.KeyMapping;
@@ -13,6 +14,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
@@ -35,6 +37,8 @@ public final class KeyBindingEvents {
             InputConstants.KEY_G ).inGameOnly();
     private static final KeyMapping FIND_PLAYERS = new SortedKeyMapping( 3, KEY + "find_players", KEY_CAT,
             InputConstants.KEY_TAB ).inGameOnly();
+    private static final KeyMapping LINK_ITEM = new SortedKeyMapping( 4, KEY + "link_item", KEY_CAT,
+            KeyModifier.ALT, InputConstants.Type.MOUSE, InputConstants.MOUSE_BUTTON_LEFT ).guiOnly();
     
     
     /** Updates the key bind state based on current settings. */
@@ -55,6 +59,7 @@ public final class KeyBindingEvents {
         event.register( PING );
         event.register( QUICK_PING );
         event.register( FIND_PLAYERS );
+        event.register( LINK_ITEM );
     }
     
     /** Called when a mouse button action occurs. */
@@ -74,12 +79,13 @@ public final class KeyBindingEvents {
      *
      * @return True if the input event should be canceled (only applicable to mouse button inputs).
      */
-    @SuppressWarnings( "RedundantIfStatement" )
     private static boolean onInput( int key, int action ) {
         Minecraft client = Minecraft.getInstance();
         Screen screen = client.screen;
-        if( key != InputConstants.UNKNOWN.getValue() && screen == null /*&& screen.isPauseScreen()*/ ) {
-            
+        if( key == InputConstants.UNKNOWN.getValue() ) return false;
+        
+        if( screen == null ) {
+            // In game key binds
             if( action == GLFW.GLFW_PRESS ) {
                 // Key pressed
                 if( isActive( key, INSPECT ) ) {
@@ -95,7 +101,7 @@ public final class KeyBindingEvents {
                     }
                     else if( InspectManager.isEnabled() ) {
                         if( InspectManager.target() != null ) ClientPingHelper.ping();
-                        if( ClientConfig.PREFS.INSPECT.keyMode.get() == Mode.HOLD ) return true;
+                        return ClientConfig.PREFS.INSPECT.keyMode.get() == Mode.HOLD;
                     }
                 }
                 else if( isActive( key, QUICK_PING ) ) {
@@ -118,15 +124,21 @@ public final class KeyBindingEvents {
                 }
             }
         }
-        //        else if( action == GLFW.GLFW_PRESS ) {
-        //            // Key pressed
-        //            if( isActive( key, client.options.keyChat ) ) {
-        //                ChatWidget.onChatKeyPressed( false );
-        //            }
-        //            else if( isActive( key, client.options.keyCommand ) ) {
-        //                ChatWidget.onChatKeyPressed( true );
-        //            }
-        //        }
+        else {
+            // In GUI key binds
+            if( action == GLFW.GLFW_PRESS ) {
+                // Key pressed
+                if( isActive( key, LINK_ITEM ) ) {
+                    return ClientChatHelper.linkItem();
+                }
+                //                else if( isActive( key, client.options.keyChat ) ) {
+                //                    ChatWidget.onChatKeyPressed( false );
+                //                }
+                //                else if( isActive( key, client.options.keyCommand ) ) {
+                //                    ChatWidget.onChatKeyPressed( true );
+                //                }
+            }
+        }
         return false;
     }
     

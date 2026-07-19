@@ -6,6 +6,8 @@ import fathertoast.coopoverhaul.common.coordination.ServerFindPlayersHelper;
 import fathertoast.coopoverhaul.common.network.message.ServerboundBlockPingPacket;
 import fathertoast.coopoverhaul.common.network.message.ServerboundDataRequestPacket;
 import fathertoast.coopoverhaul.common.network.message.ServerboundEntityPingPacket;
+import fathertoast.coopoverhaul.common.network.message.ServerboundLinkedItemChatPacket;
+import fathertoast.coopoverhaul.common.social.ServerChatHelper;
 import fathertoast.crust.api.lib.DeferredAction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -16,8 +18,7 @@ import java.util.Set;
 
 public final class ServerWork {
     
-    /** All players currently unable to send pings. */
-    public static final Set<Player> PING_ON_COOLDOWN = new HashSet<>();
+    // ---- Data Requests ---- //
     
     public static void handleDataRequest( ServerboundDataRequestPacket message, @Nullable ServerPlayer sender ) {
         if( sender != null ) handleDataRequest( message.type(), message.enable(), sender );
@@ -37,6 +38,12 @@ public final class ServerWork {
             case FIND_PLAYERS -> ServerFindPlayersHelper.setTracker( sender, enable );
         }
     }
+    
+    
+    // ---- Pings ---- //
+    
+    /** All players currently unable to send pings. */
+    public static final Set<Player> PING_ON_COOLDOWN = new HashSet<>();
     
     public static void handlePing( ServerboundEntityPingPacket message, @Nullable ServerPlayer sender ) {
         if( sender == null || isPingOnCooldown( sender ) ) return;
@@ -64,6 +71,13 @@ public final class ServerWork {
     private static boolean putPingOffCooldown( Player player ) {
         PING_ON_COOLDOWN.remove( player );
         return true;
+    }
+    
+    
+    // ---- Chat Messages ---- //
+    
+    public static void handleLinkedItemChat( ServerboundLinkedItemChatPacket message, @Nullable ServerPlayer sender ) {
+        if( sender != null ) ServerChatHelper.handleLinkedItemChat( message, sender );
     }
     
     

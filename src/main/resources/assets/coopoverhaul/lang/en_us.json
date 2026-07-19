@@ -1,10 +1,11 @@
 {
-  "key.categories.coopoverhaul": "The Co-Op Mod",
+  "key.categories.coopoverhaul": "Co-Op Overhaul",
 
   "key.coopoverhaul.inspect": "Inspect",
   "key.coopoverhaul.ping": "Ping Inspect Target",
   "key.coopoverhaul.quick_ping": "Quick Ping",
   "key.coopoverhaul.find_players": "Find Players",
+  "key.coopoverhaul.link_item": "Link Item",
 
   "sound_event.coopoverhaul.subtitle.ping_bink": "A player pings",
   "sound_event.coopoverhaul.subtitle.ping_bink_loud": "A player pings loudly",

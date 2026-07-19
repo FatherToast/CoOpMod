@@ -6,9 +6,11 @@ import fathertoast.coopoverhaul.common.util.TrackingHelper;
 import fathertoast.crust.api.util.OnClient;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ServerboundChatPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
@@ -58,6 +60,8 @@ public final class PacketHandler {
                 ServerboundEntityPingPacket::encode, ServerboundEntityPingPacket::decode, ServerboundEntityPingPacket::handle );
         registerServerboundMessage( ++messageIndex, ServerboundBlockPingPacket.class,
                 ServerboundBlockPingPacket::encode, ServerboundBlockPingPacket::decode, ServerboundBlockPingPacket::handle );
+        registerServerboundMessage( ++messageIndex, ServerboundLinkedItemChatPacket.class,
+                ServerboundLinkedItemChatPacket::encode, ServerboundLinkedItemChatPacket::decode, ServerboundLinkedItemChatPacket::handle );
     }
     
     
@@ -131,6 +135,12 @@ public final class PacketHandler {
     @OnClient
     public static void sendPingToServer( BlockPos blockPos ) {
         CHANNEL.sendToServer( new ServerboundBlockPingPacket( blockPos ) );
+    }
+    
+    /** Sends a ping to the server. */
+    @OnClient
+    public static void sendLinkedItemChat( ServerboundChatPacket chat, int index, ItemStack item ) {
+        CHANNEL.sendToServer( new ServerboundLinkedItemChatPacket( chat, index, item ) );
     }
     
     

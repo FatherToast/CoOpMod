@@ -32,7 +32,7 @@ public final class CoOpOverhaulMod {
      *      ? player inspect
      *      + parties (Maybe hook into or rely on HQM party system)
      *      ? enable chat over (most) screens
-     *      ? chat item linking ("Show Me What You Got" does this, maybe ditch)
+     *      - chat item linking
      *      ? chat emojis
      *      ? salute/emotes
      *  - co-ordination features

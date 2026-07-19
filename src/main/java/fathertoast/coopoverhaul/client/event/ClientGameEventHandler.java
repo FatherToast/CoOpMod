@@ -5,13 +5,17 @@ import fathertoast.coopoverhaul.client.config.ClientConfig;
 import fathertoast.coopoverhaul.client.coordination.ClientPingHelper;
 import fathertoast.coopoverhaul.client.coordination.FindPlayersManager;
 import fathertoast.coopoverhaul.client.coordination.InspectManager;
+import fathertoast.coopoverhaul.client.social.ClientChatHelper;
 import fathertoast.coopoverhaul.client.vfx.HighlightManager;
 import fathertoast.coopoverhaul.common.core.CoOpOverhaulMod;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderNameTagEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -106,6 +110,27 @@ public final class ClientGameEventHandler {
     //            event.addListener( new ChatWidget( event.getScreen() ) );
     //        }
     //    }
+    
+    /**
+     * Called when a screen is being closed.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.NORMAL )
+    static void onClientChat( ScreenEvent.Closing event ) {
+        if( event.getScreen() instanceof ChatScreen ) ClientChatHelper.onChatClosed();
+    }
+    
+    /**
+     * Called when a client is about to send a chat message to the server.
+     * Canceling this event will prevent the message from being sent.
+     *
+     * @param event The event data.
+     */
+    @SubscribeEvent( priority = EventPriority.LOWEST )
+    static void onClientChat( ClientChatEvent event ) {
+        if( !event.isCanceled() && ClientChatHelper.scanForLink( event.getMessage() ) ) event.setCanceled( true );
+    }
     
     /**
      * Called when a block is about to be broken by a player.
