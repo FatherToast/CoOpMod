@@ -31,10 +31,14 @@ public final class CoOpOverhaulMod {
      *  + social features
      *      ? player inspect
      *      + parties (Maybe hook into or rely on HQM party system)
-     *      ? enable chat over (most) screens
-     *      - chat item linking
-     *      ? chat emojis
-     *      ? salute/emotes
+     *      + rework chat
+     *          + enable over (most) in-game screens
+     *          - item linking
+     *          + emojis
+     *          + server-defined emojis
+     *          ? emojis from Discord server(s)
+     *          ? integrate Discord channel(s) with the chat (https://docs.discord.com/developers/reference)
+     *      ? salute/emotes ("Quark" does this, probably ditch)
      *  - co-ordination features
      *      - inspect
      *      - ping
