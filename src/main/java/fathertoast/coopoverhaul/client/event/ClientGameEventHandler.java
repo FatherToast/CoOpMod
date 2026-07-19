@@ -117,7 +117,7 @@ public final class ClientGameEventHandler {
      * @param event The event data.
      */
     @SubscribeEvent( priority = EventPriority.NORMAL )
-    static void onClientChat( ScreenEvent.Closing event ) {
+    static void onScreenClosing( ScreenEvent.Closing event ) {
         if( event.getScreen() instanceof ChatScreen ) ClientChatHelper.onChatClosed();
     }
     
